@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Struttura a Termine dei Tassi d'Interesse — Fixed Income Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1f1f1e;--bg1:#272726;--bg2:#2f2f2e;--bg3:#383837;
+  --acc:#d67556;--acc-dim:rgba(214,117,86,.13);
+  --txt:#f0f0ef;--mut:#8a8a89;--bdr:#3a3a39;
+  --grn:#6fcf97;--blu:#56b4d6;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Oxygen Mono',monospace;background:var(--bg);color:var(--txt);line-height:1.8;font-size:13.5px;display:flex;min-height:100vh}
+.sidebar{width:220px;min-width:220px;background:var(--bg1);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sb-brand{padding:24px 20px 20px;border-bottom:1px solid var(--bdr)}
+.sb-course{font-size:9px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sb-title{font-size:12px;color:var(--txt);line-height:1.5}
+.sb-nav{padding:16px 0;flex:1}
+.sb-section{font-size:9px;color:var(--mut);letter-spacing:.18em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;margin-top:16px}
+.sb-item{display:flex;align-items:flex-start;gap:10px;padding:10px 20px;text-decoration:none;transition:background .15s;cursor:default;position:relative}
+.sb-item.link{cursor:pointer}
+.sb-item.link:hover{background:var(--bg2)}
+.sb-item.active{background:var(--acc-dim)}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--acc)}
+.sb-num{font-size:10px;color:var(--mut);min-width:18px;padding-top:1px}
+.sb-item.active .sb-num{color:var(--acc)}
+.sb-info{flex:1}
+.sb-name{font-size:11px;color:var(--mut);line-height:1.4}
+.sb-item.active .sb-name{color:var(--txt)}
+.sb-item.locked .sb-name{color:var(--bg3)}
+.sb-item.skipped .sb-name{color:var(--bg3)}
+.sb-tag{font-size:9px;margin-top:3px;letter-spacing:.08em}
+.sb-tag.soon{color:var(--bg3)}
+.sb-tag.curr{color:var(--acc)}
+.sb-tag.skip{color:var(--bg3)}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--bdr);font-size:10px;color:var(--bg3)}
+.content{flex:1;min-width:0;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+.hdr{border-bottom:1px solid var(--bdr);padding:48px 0 36px}
+.hdr .in{max-width:860px;margin:0 auto;padding:0 40px}
+.hdr .tag{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px}
+.hdr h1{font-size:24px;font-weight:400;line-height:1.3}
+.hdr .sub{color:var(--mut);font-size:11px;margin-top:6px}
+.nav{position:sticky;top:0;z-index:100;background:rgba(31,31,30,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr);overflow-x:auto}
+.nav .in{max-width:860px;margin:0 auto;padding:0 28px;display:flex}
+.nav a{display:block;padding:13px 12px;font-size:10px;color:var(--mut);text-decoration:none;letter-spacing:.08em;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+.nav a:hover,.nav a.on{color:var(--acc);border-bottom-color:var(--acc)}
+main{max-width:860px;margin:0 auto;padding:0 40px 80px;flex:1}
+.sec{padding:60px 0 48px;border-bottom:1px solid var(--bdr)}
+.sec:last-child{border-bottom:none}
+.sec-num{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sec h2{font-size:19px;font-weight:400;margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.sub-h{margin-top:28px}
+.sub-h h3{font-size:10px;color:var(--acc);font-weight:400;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+p{margin-bottom:10px}
+ul,ol{padding-left:18px;margin-bottom:10px}
+li{margin-bottom:3px}
+strong{color:var(--acc);font-weight:400}
+em{color:var(--blu);font-style:normal}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+@media(max-width:580px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:18px 20px}
+.card h4{font-size:10px;color:var(--acc);letter-spacing:.1em;text-transform:uppercase;font-weight:400;margin-bottom:10px}
+.fmla{background:var(--bg1);border-left:3px solid var(--acc);border-radius:0 4px 4px 0;padding:18px 22px;margin:18px 0;overflow-x:auto}
+.fmla .fmla-ttl{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px}
+.fmla .katex-display{margin:10px 0}
+.fleg{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);font-size:11.5px;color:var(--mut);line-height:2}
+.fleg span{margin-right:14px}
+.calc{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.calc h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:18px}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-bottom:18px}
+.ig{display:flex;flex-direction:column;gap:5px}
+.ig label{font-size:11px;color:var(--mut)}
+.ig input,.ig select{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:8px 10px;color:var(--txt);font-family:'Oxygen Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;width:100%}
+.ig input:focus,.ig select:focus{border-color:var(--acc)}
+.ig select option{background:var(--bg2)}
+.btn{background:var(--acc);color:var(--bg);border:none;border-radius:3px;padding:9px 22px;font-family:'Oxygen Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:.05em;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-o{background:transparent;color:var(--mut);border:1px solid var(--bdr)}
+.btn-o:hover{color:var(--txt);border-color:var(--txt);opacity:1}
+.btn-sm{padding:5px 14px;font-size:11px}
+.res{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:14px 18px;margin-top:14px}
+.rrow{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--bdr)}
+.rrow:last-child{border-bottom:none}
+.rl{color:var(--mut);font-size:11.5px}
+.rv{color:var(--txt);font-size:14px}
+.rv.big{color:var(--acc);font-size:18px}
+.cft{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
+.cft th{text-align:right;padding:7px 12px;color:var(--mut);border-bottom:1px solid var(--bdr);font-weight:400;font-size:10.5px;letter-spacing:.05em}
+.cft th:first-child{text-align:center}
+.cft td{text-align:right;padding:6px 12px;border-bottom:1px solid var(--bdr)}
+.cft td:first-child{text-align:center;color:var(--mut)}
+.cft tr.tot td{color:var(--acc);font-size:13.5px;border-top:2px solid var(--acc);border-bottom:none}
+.chw{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.chw canvas{max-height:340px}
+.ch-ttl{font-size:10px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+.sg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.sg label{font-size:11px;color:var(--mut)}
+.srow{display:flex;align-items:center;gap:12px}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--bdr);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;background:var(--acc);border-radius:50%;cursor:pointer}
+.sv{min-width:45px;text-align:right;color:var(--acc);font-size:12.5px}
+.ex{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.ex-lbl{font-size:10px;color:var(--blu);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.ex h4{font-size:13px;font-weight:400;margin-bottom:10px}
+.sol{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)}
+.sol.on{display:block}
+.sol-lbl{font-size:10px;color:var(--grn);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.step{margin-bottom:7px;padding:6px 12px;border-left:2px solid var(--grn);font-size:12.5px}
+.step .ans{color:var(--grn);font-size:14px}
+.rtab{width:100%;border-collapse:collapse;margin:14px 0;font-size:12.5px}
+.rtab th{padding:9px 13px;background:var(--bg2);border:1px solid var(--bdr);color:var(--mut);font-weight:400;font-size:10.5px;letter-spacing:.07em;text-align:left}
+.rtab td{padding:9px 13px;border:1px solid var(--bdr)}
+.rtab tr:nth-child(even) td{background:var(--bg1)}
+.ok{color:var(--grn)}.warn{color:var(--acc)}.info{color:var(--blu)}
+.cbox{border:1px solid var(--acc);border-radius:4px;padding:14px 18px;margin:18px 0;background:var(--acc-dim)}
+.cbox h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:8px}
+.mt16{margin-top:16px}.mt24{margin-top:24px}
+.sm{font-size:12px}.mut{color:var(--mut)}
+.acc{color:var(--acc)}.grn{color:var(--grn)}.blu{color:var(--blu)}
+.info-box{border-left:2px solid var(--blu);padding:8px 14px;margin:12px 0;font-size:12.5px;color:var(--mut)}
+footer{max-width:860px;margin:0 auto;padding:22px 40px;border-top:1px solid var(--bdr);font-size:11px;color:var(--mut);display:flex;justify-content:space-between;width:100%}
+.spot-row{display:grid;grid-template-columns:60px 1fr 60px;gap:10px;align-items:center;margin-bottom:8px}
+.spot-row label{font-size:11px;color:var(--mut)}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-course">Fixed Income Analysis</div>
+    <div class="sb-title">SUPSI — DEASS<br>Fabiano Cavadini</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Lezioni</div>
+
+    <div class="sb-item skipped">
+      <span class="sb-num">01</span>
+      <div class="sb-info">
+        <div class="sb-name">Introduzione ai mercati obbligazionari</div>
+        <div class="sb-tag skip">— saltata —</div>
+      </div>
+    </div>
+
+    <a class="sb-item link" href="bond-pricing.html">
+      <span class="sb-num">02</span>
+      <div class="sb-info">
+        <div class="sb-name">Il Pricing delle Obbligazioni</div>
+      </div>
+    </a>
+
+    <a class="sb-item link" href="lezione3.html">
+      <span class="sb-num">03</span>
+      <div class="sb-info">
+        <div class="sb-name">Il Rendimento dell'Investimento</div>
+      </div>
+    </a>
+
+    <div class="sb-item active">
+      <span class="sb-num">04</span>
+      <div class="sb-info">
+        <div class="sb-name">La Struttura a Termine</div>
+        <div class="sb-tag curr">in corso</div>
+      </div>
+    </div>
+
+    <a href="lezione5.html" class="sb-item link">
+      <span class="sb-num">05</span>
+      <div class="sb-info">
+        <div class="sb-name">Teorie della Curva Spot</div>
+      </div>
+    </a>
+
+    <a href="lezione6.html" class="sb-item link">
+      <span class="sb-num">06</span>
+      <div class="sb-info">
+        <div class="sb-name">Il Rischio di Tasso</div>
+      </div>
+    </a>
+
+    <div class="sb-item locked">
+      <span class="sb-num">07</span>
+      <div class="sb-info">
+        <div class="sb-name">Lezione 7</div>
+        <div class="sb-tag soon">coming soon</div>
+      </div>
+    </div>
+
+    <div class="sb-item locked">
+      <span class="sb-num">08</span>
+      <div class="sb-info">
+        <div class="sb-name">Lezione 8</div>
+        <div class="sb-tag soon">coming soon</div>
+      </div>
+    </div>
+  </nav>
+  <div class="sb-footer">Fixed Income Analysis · SUPSI</div>
+</aside>
+
+<div class="content">
+
+<header class="hdr">
+  <div class="in">
+    <div class="tag">Lezione 04 · Fixed Income Analysis</div>
+    <h1>La Struttura a Termine<br>dei Tassi d'Interesse</h1>
+    <div class="sub">Spot rates · Yield curve · Forward rates · Bootstrap · SUPSI DEASS</div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="in">
+    <a href="#intro">Introduzione</a>
+    <a href="#zbg">ZBG</a>
+    <a href="#spot">Tassi Spot</a>
+    <a href="#curva">Yield Curve</a>
+    <a href="#cbg">Pricing CBG</a>
+    <a href="#corporate">Corporate</a>
+    <a href="#forward">Forward Rates</a>
+    <a href="#metodi">3 Metodi</a>
+    <a href="#bootstrap">Bootstrap</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ─── 1. INTRODUZIONE ─────────────────────────────────────────────────────── -->
+<section class="sec" id="intro">
+  <div class="sec-num">01 — Introduzione</div>
+  <h2>Perché il rendimento dipende dalla scadenza?</h2>
+
+  <p>Il rendimento alla scadenza (YTM) promesso da un'obbligazione dipende da tre caratteristiche:</p>
+  <ul>
+    <li><strong>vita residua</strong> — quanti periodi mancano al rimborso</li>
+    <li>il tasso cedolare</li>
+    <li>il rischio di default / rating dell'emittente</li>
+  </ul>
+
+  <p>Per studiare <em>solo</em> l'effetto della vita residua, isoliamo le altre variabili: consideriamo obbligazioni dello stesso emittente (governo), prive di rischio default, tutte senza cedola — ovvero <strong>Zero coupon Bond Governativi (ZBG)</strong>.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Definizione — Tassi Spot</div>
+    <p class="sm">I rendimenti alla scadenza degli ZBG governativi si chiamano <strong>tassi spot</strong> (o rendimenti spot). Il tasso spot \(y_i\) è il rendimento annuo applicabile a un investimento privo di rischio di durata \(i\) periodi.</p>
+  </div>
+
+  <div class="sub-h">
+    <h3>Tassi Spot Svizzeri (6 Febbraio 2024)</h3>
+  </div>
+
+  <table class="rtab" style="max-width:360px">
+    <tr><th>Scadenza</th><th>Spot rate (\(y_i\))</th></tr>
+    <tr><td>1 anno</td><td class="ok">1.550%</td></tr>
+    <tr><td>2 anni</td><td>1.166%</td></tr>
+    <tr><td>3 anni</td><td>1.031%</td></tr>
+    <tr><td>4 anni</td><td>0.956%</td></tr>
+    <tr><td>5 anni</td><td>0.896%</td></tr>
+    <tr><td>6 anni</td><td>0.901%</td></tr>
+    <tr><td>7 anni</td><td class="warn">0.879%</td></tr>
+  </table>
+
+  <p class="sm mut mt16">Fonte: worldgovernmentbonds.com/country/switzerland/ — La curva è <em>invertita</em>: il tasso a breve (1Y = 1.55%) è superiore a quello a lungo (5Y = 0.896%).</p>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio rapido</div>
+    <h4>Calcola il prezzo dello ZBG con 1 anno di vita residua e quello con 5 anni. Nominale CHF 100.</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_intro')">Mostra soluzione</button>
+    <div class="sol" id="s_intro">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">ZBG<sub>1</sub> = 100 / (1 + 0.01550) = <span class="ans">98.474 CHF</span></div>
+      <div class="step">ZBG<sub>5</sub> = 100 / (1 + 0.00896)⁵ = <span class="ans">95.575 CHF</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 2. ZBG ──────────────────────────────────────────────────────────────── -->
+<section class="sec" id="zbg">
+  <div class="sec-num">02 — ZBG</div>
+  <h2>Zero Coupon Bond Governativi</h2>
+
+  <p>Se ipotizziamo di conoscere con certezza l'evoluzione dei <strong>tassi semestrali futuri</strong> del Tesoro USA, possiamo calcolare il prezzo degli ZBG attualizzando il nominale attraverso ogni singolo periodo:</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Pricing ZBG con tassi futuri noti</div>
+    \[ZBG_{ns;0} = \frac{N}{(1+y_{0;1})(1+y_{1;2})\cdots(1+y_{n-1;n})} = \frac{N}{(1+y_n)^n}\]
+    <div class="fleg">
+      <span>\(y_{i-1;i}\) = tasso del periodo \(i\) (semestrale)</span>
+      <span>\(y_n\) = tasso spot a \(n\) semestri</span>
+    </div>
+  </div>
+
+  <div class="sub-h"><h3>Esempio — Tassi Semestrali USA Noti</h3></div>
+  <p class="sm">Supponiamo: \(y_{0;1}^a = 8\%\) → periodico 4%, \(y_{1;2}^a = 10\%\) → 5%, \(y_{2;3}^a = 11\%\) → 5.5%</p>
+
+  <table class="cft" style="max-width:580px;margin-top:16px">
+    <thead>
+      <tr>
+        <th style="text-align:center">Semestre</th>
+        <th>Prezzo ZBG</th>
+        <th>Calcolo</th>
+        <th>Tasso Spot \(y_n\)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>96.1538</td>
+        <td style="text-align:left;color:var(--mut)">100 / (1.04)</td>
+        <td class="ok">4.000%</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>91.5751</td>
+        <td style="text-align:left;color:var(--mut)">100 / (1.04×1.05)</td>
+        <td class="ok">4.499%</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>86.80</td>
+        <td style="text-align:left;color:var(--mut)">100 / (1.04×1.05×1.055)</td>
+        <td class="ok">4.832%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="sm mut mt16">Nota: il tasso spot \(y_3 = 4.832\%\) è la <strong>media geometrica</strong> dei tre tassi periodici: \((1.04 \times 1.05 \times 1.055)^{1/3} - 1\).</p>
+
+  <div class="sub-h"><h3>Calcolatore ZBG — Tassi Periodici Futuri</h3></div>
+
+  <div class="calc">
+    <h4>Inserisci fino a 5 tassi periodici futuri (in %)</h4>
+    <div class="igrid">
+      <div class="ig"><label>\(y_{0;1}\) (periodo 1, %)</label><input type="number" id="zr1" value="4" step="0.1"></div>
+      <div class="ig"><label>\(y_{1;2}\) (periodo 2, %)</label><input type="number" id="zr2" value="5" step="0.1"></div>
+      <div class="ig"><label>\(y_{2;3}\) (periodo 3, %)</label><input type="number" id="zr3" value="5.5" step="0.1"></div>
+      <div class="ig"><label>\(y_{3;4}\) (periodo 4, %)</label><input type="number" id="zr4" value="6" step="0.1"></div>
+      <div class="ig"><label>\(y_{4;5}\) (periodo 5, %)</label><input type="number" id="zr5" value="6.5" step="0.1"></div>
+      <div class="ig"><label>Nominale</label><input type="number" id="znom" value="100" step="1"></div>
+    </div>
+    <button class="btn" onclick="calcZBG()">Calcola</button>
+    <div id="zbg_res"></div>
+  </div>
+</section>
+
+<!-- ─── 3. TASSI SPOT ───────────────────────────────────────────────────────── -->
+<section class="sec" id="spot">
+  <div class="sec-num">03 — Tassi Spot</div>
+  <h2>I Rendimenti degli ZBG come Media Geometrica</h2>
+
+  <p>Il tasso spot \(y_n\) non è altro che la <strong>media geometrica dei tassi futuri a breve</strong> previsti per ciascun periodo:</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Relazione Spot — Tassi Futuri a Breve</div>
+    \[(1+y_1)^1 = (1+y_{0;1}) \implies y_{0;1} = y_1\]
+    \[(1+y_{0;1})(1+y_{1;2}) = (1+y_2)^2\]
+    \[(1+y_{0;1})\cdot(1+y_{1;2})\cdots(1+y_{n-1;n}) = (1+y_n)^n\]
+    <div class="fleg">
+      <span>\(y_n\) = tasso spot a \(n\) periodi</span>
+      <span>\(y_{i-1;i}\) = tasso del singolo periodo \(i\)</span>
+    </div>
+  </div>
+
+  <div class="grid2 mt24">
+    <div class="card">
+      <h4>USA (p = 2, semestrale)</h4>
+      <p class="sm">I Treasuries pagano cedole semestralmente. Il rendimento spot effettivo semestrale \(y_i\) viene convertito in tasso nominale annuo moltiplicando per 2:</p>
+      \[y_i^a = y_i \cdot p = y_i \cdot 2\]
+      <p class="sm mut">Es: \(y_i = 5\%\) semestrale → \(y_i^a = 10\%\) nominale annuo</p>
+    </div>
+    <div class="card">
+      <h4>Svizzera (p = 1, annuale)</h4>
+      <p class="sm">I titoli governativi svizzeri pagano cedole annuali. I tassi spot si calcolano già come tassi effettivi annuali:</p>
+      \[y_i^a = y_i\]
+      <p class="sm mut">Il tasso spot è direttamente il rendimento effettivo annuo dello ZBG.</p>
+    </div>
+  </div>
+
+  <div class="cbox">
+    <h4>Concetto Chiave</h4>
+    <p class="sm">I tassi spot sono la <strong>media geometrica dei tassi a breve futuri</strong>. Se i tassi futuri attesi aumentano, la curva spot è crescente (normale). Se diminuiscono, la curva è decrescente (invertita), come in Svizzera nel 2024.</p>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio</div>
+    <h4>Dato \(y_1 = 4\%\) e \(y_2 = 4.499\%\), calcola il tasso futuro implicito \(y_{1;2}\).</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_spot')">Mostra soluzione</button>
+    <div class="sol" id="s_spot">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">\((1+y_2)^2 = (1+y_1)(1+y_{1;2})\)</div>
+      <div class="step">\((1.04499)^2 = (1.04)(1+y_{1;2})\)</div>
+      <div class="step">\(1+y_{1;2} = (1.04499)^2 / 1.04 = 1.09244 / 1.04 = 1.05004\)</div>
+      <div class="step">\(y_{1;2} = \) <span class="ans">5.004% ≈ 5%</span> (coerente con l'assunzione iniziale)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 4. YIELD CURVE ─────────────────────────────────────────────────────── -->
+<section class="sec" id="curva">
+  <div class="sec-num">04 — Yield Curve</div>
+  <h2>La Curva dei Tassi Spot</h2>
+
+  <p>La rappresentazione grafica dei rendimenti degli ZBG governativi \(y_i\) in funzione della scadenza \(i\) è detta <strong>curva dei rendimenti spot</strong> (spot yield curve).</p>
+
+  <div class="sub-h"><h3>Forme Tipiche della Curva</h3></div>
+  <div class="grid2">
+    <div class="card">
+      <h4>Curva Normale (upward sloping)</h4>
+      <p class="sm">I tassi a lungo termine sono superiori a quelli a breve. Situazione più comune — il mercato si aspetta tassi futuri in aumento o compensa il rischio di duration.</p>
+    </div>
+    <div class="card">
+      <h4>Curva Invertita (downward sloping)</h4>
+      <p class="sm">I tassi a breve superano quelli a lungo. Segnale di possibile recessione. Es: Svizzera feb 2024 — \(y_1 = 1.55\%\), \(y_5 = 0.896\%\).</p>
+    </div>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Yield Curve Interattiva — modifica i tassi spot e osserva la forma</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:18px" id="spotInputs"></div>
+    <canvas id="yieldChart"></canvas>
+  </div>
+
+  <p class="sm mut">I punti dati predefiniti corrispondono alla curva svizzera del 6 febbraio 2024. I tassi spot per scadenze superiori (\(y_{10} = 0.923\%\)) si ottengono con il metodo del <strong>bootstrap</strong> (sezione 9).</p>
+</section>
+
+<!-- ─── 5. PRICING CBG ────────────────────────────────────────────────────────-->
+<section class="sec" id="cbg">
+  <div class="sec-num">05 — Pricing CBG</div>
+  <h2>Pricing dei Coupon Bond Governativi con Tassi Spot</h2>
+
+  <p>La curva dei tassi spot ci permette di calcolare il prezzo <em>esatto</em> di un Coupon Bond Governativo: ogni flusso di cassa futuro viene attualizzato con il tasso spot corrispondente alla sua scadenza, trattandolo come se fosse uno ZBG separato.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Pricing CBG con Spot Rates</div>
+    \[BG = \frac{CF_1}{1+y_1} + \frac{CF_2}{(1+y_2)^2} + \cdots + \frac{CF_n}{(1+y_n)^n}\]
+    <div class="fleg">
+      <span>\(CF_t\) = flusso di cassa al tempo \(t\) (cedola + nominale all'ultima scadenza)</span>
+      <span>\(y_t\) = tasso spot per la scadenza \(t\)</span>
+    </div>
+  </div>
+
+  <div class="info-box">A differenza del pricing con YTM (tasso unico), qui ogni flusso viene scontato con il suo specifico tasso di mercato. Il risultato è il prezzo <em>teorico arbitrage-free</em>.</div>
+
+  <div class="calc">
+    <h4>Calcolatore CBG con Tassi Spot</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale (N)</label><input type="number" id="bg_nom" value="100000" step="1000"></div>
+      <div class="ig"><label>Tasso cedolare (%)</label><input type="number" id="bg_c" value="2" step="0.1"></div>
+      <div class="ig"><label>Scadenza (anni)</label>
+        <select id="bg_n">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5" selected>5</option>
+        </select>
+      </div>
+    </div>
+    <p class="sm mut" style="margin-bottom:12px">Tassi spot (%) per ciascuna scadenza — precompilati con i dati svizzeri 2024:</p>
+    <div id="spotRatesInput" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px"></div>
+    <button class="btn" onclick="calcCBG()">Calcola Prezzo</button>
+    <div id="cbg_res"></div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio dal PDF</div>
+    <h4>Calcola il prezzo di uno ZB governativo e di un CB governativo (cedola 2%), entrambi scadenza 5 anni, nominale CHF 100'000. Usa i tassi spot svizzeri Feb 2024.</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_cbg')">Mostra soluzione</button>
+    <div class="sol" id="s_cbg">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step"><strong>ZBG 5Y:</strong> prezzo = 100'000 / (1.00896)⁵ = <span class="ans">CHF 95'572.69</span></div>
+      <div class="step"><strong>CBG 2% 5Y:</strong> CF = CHF 2'000/anno + CHF 100'000 al t=5</div>
+      <div class="step">= 2000/1.01550 + 2000/1.01166² + 2000/1.01031³ + 2000/1.00956⁴ + 102000/1.00896⁵</div>
+      <div class="step">= 1969.54 + 1977.04 + 1939.15 + 1924.49 + 97'483.55 = <span class="ans">CHF 105'293.77</span></div>
+      <p class="sm mut" style="margin-top:8px">Il CB governa trade sopra la pari perché la cedola 2% > tasso spot medio. Lo ZBG trade sotto la pari.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 6. CORPORATE ──────────────────────────────────────────────────────────-->
+<section class="sec" id="corporate">
+  <div class="sec-num">06 — Corporate Bond</div>
+  <h2>Pricing dei Coupon Bond Corporate</h2>
+
+  <p>Per un <strong>Corporate Bond</strong> il procedimento è analogo al CBG, ma ogni tasso spot viene aumentato di uno <strong>spread di credito</strong> \(s_i\) che compensa il rischio di default dell'emittente:</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Pricing CB Corporate</div>
+    \[BC = \frac{CF_1}{1+i_1} + \frac{CF_2}{(1+i_2)^2} + \cdots + \frac{CF_n}{(1+i_n)^n}\]
+    \[i_t = y_t + s_t\]
+    <div class="fleg">
+      <span>\(y_t\) = tasso spot governativo per la scadenza \(t\)</span>
+      <span>\(s_t\) = spread di credito per la scadenza \(t\)</span>
+      <span>\(i_t\) = tasso di sconto complessivo (spot + spread)</span>
+    </div>
+  </div>
+
+  <div class="info-box">Lo spread \(s_t\) può variare con la scadenza (spread curve). Un'obbligazione AAA avrà spread bassi e stabili; un'obbligazione HY avrà spread elevati e crescenti.</div>
+
+  <div class="calc">
+    <h4>Calcolatore CB Corporate (spread costante)</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale (N)</label><input type="number" id="bc_nom" value="100000" step="1000"></div>
+      <div class="ig"><label>Tasso cedolare (%)</label><input type="number" id="bc_c" value="3" step="0.1"></div>
+      <div class="ig"><label>Scadenza (anni)</label>
+        <select id="bc_n">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5" selected>5</option>
+        </select>
+      </div>
+      <div class="ig"><label>Spread di credito (%)</label><input type="number" id="bc_s" value="1.5" step="0.05"></div>
+    </div>
+    <p class="sm mut" style="margin-bottom:12px">Tassi spot base (%) — precompilati con i dati svizzeri 2024:</p>
+    <div id="spotRatesInputCorp" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px"></div>
+    <button class="btn" onclick="calcBC()">Calcola Prezzo</button>
+    <div id="bc_res"></div>
+  </div>
+
+  <div class="cbox">
+    <h4>Confronto CBG vs BC</h4>
+    <p class="sm">A parità di cedola e scadenza, il Corporate Bond vale <em>meno</em> del governativo perché i flussi vengono scontati a un tasso superiore (spot + spread). La differenza di prezzo riflette il rischio di credito incorporato nel mercato.</p>
+  </div>
+</section>
+
+<!-- ─── 7. FORWARD RATES ──────────────────────────────────────────────────────-->
+<section class="sec" id="forward">
+  <div class="sec-num">07 — Forward Rates</div>
+  <h2>I Tassi a Termine (Forward Rates)</h2>
+
+  <p>Nella realtà, i tassi futuri a breve <em>non sono noti</em>. Invece di ipotizzarli, il mercato ci fornisce i prezzi degli ZBG da cui possiamo ricavare i <strong>tassi forward</strong> \(f_{n-1;n}\) — i tassi "impliciti" per un periodo futuro.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Definizione — Tasso Forward \(f_{1;2}\)</div>
+    <p class="sm" style="margin-bottom:10px">Il tasso forward \(f_{1;2}\) è il tasso di <em>break-even</em> fra due strategie di investimento prive di rischio:</p>
+    <ul class="sm" style="margin-bottom:12px;padding-left:18px">
+      <li>investire 2 periodi al tasso spot \(y_2\)</li>
+      <li>investire 1 periodo a \(y_1\) e poi reinvestire a \(f_{1;2}\)</li>
+    </ul>
+    \[(1+y_2)^2 = (1+y_1)\cdot(1+f_{1;2})\]
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Formula Generale — Tasso Forward \(f_{n-1;n}\)</div>
+    \[(1+y_n)^n = (1+y_{n-1})^{n-1}\cdot(1+f_{n-1;n})\]
+    \[f_{n-1;n} = \frac{(1+y_n)^n}{(1+y_{n-1})^{n-1}} - 1\]
+    <div class="fleg">
+      <span>\(f_{n-1;n}\) = tasso forward per il periodo \((n-1)\) a \(n\)</span>
+      <span>\(y_n\) = tasso spot a \(n\) periodi</span>
+    </div>
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">I Tassi Spot come Media Geometrica dei Forward</div>
+    \[(1+y_n)^n = (1+f_{0;1})\cdot(1+f_{1;2})\cdots(1+f_{n-1;n})\]
+    <p class="sm mut" style="margin-top:8px">I tassi spot sono la media geometrica dei tassi forward. I tassi forward sostituiscono i "futuri tassi certi" ipotizzati in precedenza.</p>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore Tasso Forward \(f_{n-1;n}\)</h4>
+    <div class="igrid">
+      <div class="ig"><label>Tasso spot \(y_{n-1}\) (%)</label><input type="number" id="fw_yn1" value="4" step="0.01"></div>
+      <div class="ig"><label>Scadenza \(n-1\) (periodi)</label><input type="number" id="fw_n1" value="1" step="1" min="1"></div>
+      <div class="ig"><label>Tasso spot \(y_n\) (%)</label><input type="number" id="fw_yn" value="4.499" step="0.001"></div>
+      <div class="ig"><label>Scadenza \(n\) (periodi)</label><input type="number" id="fw_n" value="2" step="1" min="2"></div>
+    </div>
+    <button class="btn" onclick="calcForward()">Calcola Forward</button>
+    <div id="fw_res"></div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio</div>
+    <h4>Sono dati i prezzi di due ZBG americani: ZB1s = 961.538 USD (nominale 1000), ZB2s = 915.751 USD. Determina i tassi spot, i fattori di sconto e il tasso forward per il secondo semestre.</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_fwd')">Mostra soluzione</button>
+    <div class="sol" id="s_fwd">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step"><strong>Tasso spot y₁:</strong> y₁ = N/P₁ - 1 = 1000/961.538 - 1 = <span class="ans">4.000%</span></div>
+      <div class="step"><strong>Tasso spot y₂:</strong> y₂ = (N/P₂)^(1/2) - 1 = (1000/915.751)^0.5 - 1 = <span class="ans">4.499%</span></div>
+      <div class="step"><strong>Fattori di sconto:</strong> DF₁ = P₁/N = 961.538/1000 = <span class="ans">0.96154</span>; DF₂ = 915.751/1000 = <span class="ans">0.91575</span></div>
+      <div class="step"><strong>Forward f₁;₂:</strong> f₁;₂ = (1+y₂)²/(1+y₁) - 1 = (1.04499)²/1.04 - 1 = 1.09244/1.04 - 1 = <span class="ans">5.004% ≈ 5%</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 8. 3 METODI ───────────────────────────────────────────────────────────-->
+<section class="sec" id="metodi">
+  <div class="sec-num">08 — 3 Metodi</div>
+  <h2>Tre Metodi Equivalenti per il Pricing dei CBG</h2>
+
+  <p>Possiamo prezzare un'obbligazione governativa usando quattro approcci equivalenti — tutti danno lo stesso risultato:</p>
+
+  <table class="rtab">
+    <tr>
+      <th>Metodo</th>
+      <th>Formula</th>
+    </tr>
+    <tr>
+      <td class="ok">Tassi Spot</td>
+      <td>\(BG = \dfrac{CF_1}{1+y_1} + \dfrac{CF_2}{(1+y_2)^2} + \cdots + \dfrac{CF_n}{(1+y_n)^n}\)</td>
+    </tr>
+    <tr>
+      <td class="blu">Fattori di Sconto</td>
+      <td>\(BG = CF_1 \cdot DF_1 + CF_2 \cdot DF_2 + \cdots + CF_n \cdot DF_n\) &nbsp; dove \(DF_t = \dfrac{1}{(1+y_t)^t}\)</td>
+    </tr>
+    <tr>
+      <td class="warn">Tassi Forward</td>
+      <td>\(BG = \dfrac{CF_1}{1+y_1} + \dfrac{CF_2}{(1+y_1)(1+f_{1;2})} + \cdots + \dfrac{CF_n}{(1+y_1)(1+f_{1;2})\cdots(1+f_{n-1;n})}\)</td>
+    </tr>
+    <tr>
+      <td class="mut">YTM (flat rate)</td>
+      <td>\(BG = \dfrac{CF_1}{1+y} + \dfrac{CF_2}{(1+y)^2} + \cdots + \dfrac{CF_n}{(1+y)^n}\)</td>
+    </tr>
+  </table>
+
+  <div class="info-box">I metodi Spot, DF e Forward sono <strong>esattamente equivalenti</strong> e danno il prezzo arbitrage-free. Il metodo YTM usa un tasso unico "medio" — è una approssimazione utile ma imprecisa per obbligazioni con cedola elevata o curva molto inclinata.</div>
+
+  <div class="sub-h"><h3>Equivalenza Spot ↔ Fattori di Sconto</h3></div>
+
+  <div class="calc">
+    <h4>Verifica Equivalenza — CBG con 3 periodi</h4>
+    <div class="igrid">
+      <div class="ig"><label>Cedola annua (%)</label><input type="number" id="eq_c" value="5" step="0.1"></div>
+      <div class="ig"><label>Nominale</label><input type="number" id="eq_nom" value="100" step="1"></div>
+      <div class="ig"><label>Spot y₁ (%)</label><input type="number" id="eq_y1" value="4" step="0.01"></div>
+      <div class="ig"><label>Spot y₂ (%)</label><input type="number" id="eq_y2" value="4.499" step="0.001"></div>
+      <div class="ig"><label>Spot y₃ (%)</label><input type="number" id="eq_y3" value="4.832" step="0.001"></div>
+    </div>
+    <button class="btn" onclick="calcEquiv()">Confronta Metodi</button>
+    <div id="eq_res"></div>
+  </div>
+</section>
+
+<!-- ─── 9. BOOTSTRAP ──────────────────────────────────────────────────────────-->
+<section class="sec" id="bootstrap">
+  <div class="sec-num">09 — Bootstrap</div>
+  <h2>Bootstrap: Ricavare la Curva Spot dai Prezzi di Mercato</h2>
+
+  <p>Nella pratica, i tassi spot non si osservano direttamente — li si ricava dai prezzi di mercato dei titoli governativi. Il metodo si chiama <strong>bootstrapping</strong>:</p>
+
+  <ol style="padding-left:20px;margin-bottom:16px">
+    <li>Per ZBG: lo spot rate si ricava direttamente dal prezzo → \(y_n = (N/P)^{1/n} - 1\)</li>
+    <li>Per CBG: si sfruttano i tassi spot già ricavati per le scadenze precedenti → si risolve per \(y_n\)</li>
+    <li>Si procede in sequenza: ogni tasso spot deriva da quelli già calcolati (bootstrapping)</li>
+  </ol>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Bootstrap — CBG a n periodi</div>
+    \[P = \frac{CF_1}{1+y_1} + \frac{CF_2}{(1+y_2)^2} + \cdots + \frac{CF_n}{(1+y_n)^n}\]
+    <p class="sm mut" style="margin-top:8px">Conoscendo \(P\), \(CF_i\) e \(y_1,\ldots,y_{n-1}\), si risolve per \(y_n\) in modo analitico (se nominale puro) o con bisection.</p>
+  </div>
+
+  <div class="sub-h"><h3>Esercizio Bootstrap Completo (USA, p = 2)</h3></div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio dal PDF</div>
+    <h4>Dai prezzi delle seguenti obbligazioni americane (p=2, nominale 1000), ricava la curva dei rendimenti spot e i tassi forward.</h4>
+    <table class="rtab" style="max-width:500px;margin-bottom:16px">
+      <tr><th>Semestri</th><th>Coupon (%)</th><th>Prezzo</th><th>Spot Rate</th><th>Forward</th></tr>
+      <tr><td>1</td><td>0</td><td>961.538</td><td id="bs_y1">—</td><td>—</td></tr>
+      <tr><td>2</td><td>0</td><td>924.556</td><td id="bs_y2">—</td><td id="bs_f2">—</td></tr>
+      <tr><td>3</td><td>8.5%</td><td>994.411</td><td id="bs_y3">—</td><td id="bs_f3">—</td></tr>
+    </table>
+    <button class="btn btn-sm" onclick="solveBootstrap()">Risolvi Bootstrap</button>
+    <div class="sol on" id="s_boot" style="display:none">
+      <div class="sol-lbl">Soluzione passo per passo</div>
+      <div id="boot_steps"></div>
+    </div>
+  </div>
+
+  <div class="sub-h"><h3>Calcolatore Bootstrap Interattivo</h3></div>
+  <div class="calc">
+    <h4>Inserisci prezzi e cedole — bootstrap automatico (fino a 5 periodi, nominale 100)</h4>
+    <table class="cft" id="bsTable" style="margin-bottom:16px">
+      <thead>
+        <tr>
+          <th style="text-align:center">Periodo</th>
+          <th style="text-align:left;padding:7px 12px">Cedola (%)</th>
+          <th style="text-align:left;padding:7px 12px">Prezzo</th>
+          <th style="text-align:center">Spot Rate</th>
+          <th style="text-align:center">Forward Rate</th>
+          <th style="text-align:center">Discount Factor</th>
+        </tr>
+      </thead>
+      <tbody id="bsBody">
+      </tbody>
+    </table>
+    <button class="btn" onclick="runBootstrap()">Calcola Bootstrap</button>
+    <div id="bs_res" style="margin-top:14px"></div>
+    <div class="chw" style="margin-top:16px">
+      <div class="ch-ttl">Spot Curve vs Forward Curve</div>
+      <canvas id="sfChart"></canvas>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>Lezione 04 — La Struttura a Termine dei Tassi d'Interesse</span>
+  <span>Fixed Income Analysis · SUPSI DEASS · Fabiano Cavadini</span>
+</footer>
+
+</div><!-- .content -->
+
+<script>
+// ── Utilities ────────────────────────────────────────────────────────────────
+function fmt(x, d=4){ return x.toFixed(d); }
+function pct(x, d=4){ return (x*100).toFixed(d)+'%'; }
+function fmtN(x){ return x.toLocaleString('it-CH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function toggleSol(id){ const el=document.getElementById(id); el.classList.toggle('on'); }
+
+// Swiss spot rates (default)
+const CH_SPOTS = [1.550, 1.166, 1.031, 0.956, 0.896, 0.901, 0.879];
+
+// ── ZBG Calculator ────────────────────────────────────────────────────────────
+function calcZBG(){
+  const rates = [
+    parseFloat(document.getElementById('zr1').value)/100,
+    parseFloat(document.getElementById('zr2').value)/100,
+    parseFloat(document.getElementById('zr3').value)/100,
+    parseFloat(document.getElementById('zr4').value)/100,
+    parseFloat(document.getElementById('zr5').value)/100
+  ];
+  const N = parseFloat(document.getElementById('znom').value);
+  let html = '<div class="res"><table class="cft"><thead><tr>';
+  html += '<th style="text-align:center">Periodo</th><th>Prezzo ZBG</th><th>Tasso Spot y_n</th><th>Discount Factor</th></tr></thead><tbody>';
+  let cumProd = 1;
+  for(let i=0;i<5;i++){
+    cumProd *= (1 + rates[i]);
+    const price = N / cumProd;
+    const spotRate = Math.pow(cumProd, 1/(i+1)) - 1;
+    const df = 1/cumProd;
+    html += `<tr><td>${i+1}</td><td>${fmtN(price)}</td><td class="ok">${pct(spotRate)}</td><td>${fmt(df,5)}</td></tr>`;
+  }
+  html += '</tbody></table></div>';
+  document.getElementById('zbg_res').innerHTML = html;
+}
+
+// ── Yield Curve Chart ────────────────────────────────────────────────────────
+let yieldChart = null;
+const maturities = [1,2,3,4,5,6,7];
+const matLabels = ['1Y','2Y','3Y','4Y','5Y','6Y','7Y'];
+
+function initYieldCurve(){
+  const container = document.getElementById('spotInputs');
+  container.innerHTML = '';
+  CH_SPOTS.forEach((v,i) => {
+    const div = document.createElement('div');
+    div.className = 'ig';
+    div.innerHTML = `<label>y<sub>${i+1}</sub> (%)</label><input type="number" id="sc_y${i+1}" value="${v}" step="0.01" oninput="updateYieldChart()">`;
+    container.appendChild(div);
+  });
+  const ctx = document.getElementById('yieldChart').getContext('2d');
+  yieldChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: matLabels,
+      datasets: [
+        { label: 'Spot Rates', data: CH_SPOTS.map(v=>v), borderColor:'#d67556', backgroundColor:'rgba(214,117,86,.1)', pointBackgroundColor:'#d67556', tension:0.3, fill:true },
+        { label: 'CH Feb 2024', data: CH_SPOTS.map(v=>v), borderColor:'#8a8a89', borderDash:[4,3], pointRadius:0, tension:0.3, fill:false }
+      ]
+    },
+    options: {
+      responsive:true, animation:false,
+      plugins:{ legend:{labels:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}},
+        tooltip:{backgroundColor:'#272726',borderColor:'#3a3a39',borderWidth:1,titleColor:'#d67556',bodyColor:'#f0f0ef',callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(3)}%`}} },
+      scales:{
+        x:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11}},grid:{color:'#3a3a39'}},
+        y:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11},callback:v=>v.toFixed(2)+'%'},grid:{color:'#3a3a39'}}
+      }
+    }
+  });
+}
+
+function updateYieldChart(){
+  const vals = maturities.map((_,i) => parseFloat(document.getElementById(`sc_y${i+1}`).value)||0);
+  yieldChart.data.datasets[0].data = vals;
+  yieldChart.update();
+}
+
+// ── CBG Spot Rates Inputs ────────────────────────────────────────────────────
+function buildSpotInputs(containerId, prefix, n){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const defaults = CH_SPOTS;
+  for(let i=0;i<n;i++){
+    const div = document.createElement('div');
+    div.className = 'ig';
+    div.innerHTML = `<label>y<sub>${i+1}</sub> (anno ${i+1})</label><input type="number" id="${prefix}_s${i+1}" value="${defaults[i]||1}" step="0.001">`;
+    container.appendChild(div);
+  }
+}
+
+function rebuildCBGInputs(){
+  const n = parseInt(document.getElementById('bg_n').value);
+  buildSpotInputs('spotRatesInput','bg',n);
+}
+
+function rebuildCorpInputs(){
+  const n = parseInt(document.getElementById('bc_n').value);
+  buildSpotInputs('spotRatesInputCorp','bc',n);
+}
+
+function calcCBG(){
+  const N = parseFloat(document.getElementById('bg_nom').value);
+  const c = parseFloat(document.getElementById('bg_c').value)/100;
+  const n = parseInt(document.getElementById('bg_n').value);
+  const coupon = N * c;
+  let price = 0;
+  let html = '<div class="res"><table class="cft"><thead><tr><th style="text-align:center">Anno</th><th>Cash Flow</th><th>Spot Rate</th><th>Fattore Sconto</th><th>PV</th></tr></thead><tbody>';
+  for(let t=1;t<=n;t++){
+    const yi = parseFloat(document.getElementById(`bg_s${t}`).value)/100;
+    const cf = t===n ? coupon+N : coupon;
+    const df = 1/Math.pow(1+yi,t);
+    const pv = cf*df;
+    price += pv;
+    html += `<tr><td>${t}</td><td>${fmtN(cf)}</td><td class="ok">${(yi*100).toFixed(3)}%</td><td>${fmt(df,5)}</td><td>${fmtN(pv)}</td></tr>`;
+  }
+  html += `<tr class="tot"><td></td><td colspan="3">Prezzo Totale</td><td>${fmtN(price)}</td></tr>`;
+  html += '</tbody></table></div>';
+  document.getElementById('cbg_res').innerHTML = html;
+}
+
+function calcBC(){
+  const N = parseFloat(document.getElementById('bc_nom').value);
+  const c = parseFloat(document.getElementById('bc_c').value)/100;
+  const n = parseInt(document.getElementById('bc_n').value);
+  const s = parseFloat(document.getElementById('bc_s').value)/100;
+  const coupon = N * c;
+  let priceCBG = 0, priceBC = 0;
+  let html = '<div class="res"><table class="cft"><thead><tr><th style="text-align:center">Anno</th><th>CF</th><th>Spot y</th><th>i = y+s</th><th>PV (gov)</th><th>PV (corp)</th></tr></thead><tbody>';
+  for(let t=1;t<=n;t++){
+    const yi = parseFloat(document.getElementById(`bc_s${t}`).value)/100;
+    const it = yi + s;
+    const cf = t===n ? coupon+N : coupon;
+    const pvGov = cf/Math.pow(1+yi,t);
+    const pvCorp = cf/Math.pow(1+it,t);
+    priceCBG += pvGov;
+    priceBC += pvCorp;
+    html += `<tr><td>${t}</td><td>${fmtN(cf)}</td><td class="ok">${(yi*100).toFixed(3)}%</td><td class="warn">${(it*100).toFixed(3)}%</td><td>${fmtN(pvGov)}</td><td>${fmtN(pvCorp)}</td></tr>`;
+  }
+  html += `<tr class="tot"><td></td><td colspan="2"></td><td>Spread: ${(s*100).toFixed(2)}%</td><td>${fmtN(priceCBG)}</td><td>${fmtN(priceBC)}</td></tr>`;
+  html += '</tbody></table>';
+  html += `<div class="rrow" style="margin-top:8px"><span class="rl">Differenza di prezzo (rischio credito)</span><span class="rv warn">${fmtN(priceCBG-priceBC)}</span></div>`;
+  html += '</div>';
+  document.getElementById('bc_res').innerHTML = html;
+}
+
+// ── Forward Rate Calculator ───────────────────────────────────────────────────
+function calcForward(){
+  const yn1 = parseFloat(document.getElementById('fw_yn1').value)/100;
+  const n1  = parseInt(document.getElementById('fw_n1').value);
+  const yn  = parseFloat(document.getElementById('fw_yn').value)/100;
+  const n   = parseInt(document.getElementById('fw_n').value);
+  if(n<=n1){ document.getElementById('fw_res').innerHTML='<p class="warn" style="margin-top:10px">n deve essere > n-1</p>'; return; }
+  const fwd = Math.pow(1+yn,n)/Math.pow(1+yn1,n1) - 1;
+  const df1 = 1/Math.pow(1+yn1,n1);
+  const df2 = 1/Math.pow(1+yn,n);
+  document.getElementById('fw_res').innerHTML = `
+    <div class="res">
+      <div class="rrow"><span class="rl">Fattore di sconto DF<sub>${n1}</sub></span><span class="rv">${fmt(df1,5)}</span></div>
+      <div class="rrow"><span class="rl">Fattore di sconto DF<sub>${n}</sub></span><span class="rv">${fmt(df2,5)}</span></div>
+      <div class="rrow"><span class="rl">Tasso forward f<sub>${n1};${n}</sub></span><span class="rv big">${pct(fwd)}</span></div>
+    </div>`;
+}
+
+// ── Equivalence Calculator ───────────────────────────────────────────────────
+function calcEquiv(){
+  const c   = parseFloat(document.getElementById('eq_c').value)/100;
+  const N   = parseFloat(document.getElementById('eq_nom').value);
+  const y1  = parseFloat(document.getElementById('eq_y1').value)/100;
+  const y2  = parseFloat(document.getElementById('eq_y2').value)/100;
+  const y3  = parseFloat(document.getElementById('eq_y3').value)/100;
+  const spots = [y1,y2,y3];
+  const CFs = [N*c, N*c, N*(1+c)];
+
+  const df = spots.map((y,i) => 1/Math.pow(1+y,i+1));
+  const f12 = (1+y2)*(1+y2)/((1+y1)) - 1;
+  const f23 = Math.pow(1+y3,3)/Math.pow(1+y2,2) - 1;
+
+  // price by spot
+  const p_spot = CFs.reduce((s,cf,i) => s + cf*df[i], 0);
+  // price by DF (same)
+  const p_df   = CFs.reduce((s,cf,i) => s + cf*df[i], 0);
+  // price by forward
+  const p_fwd  = CFs[0]/(1+y1) + CFs[1]/((1+y1)*(1+f12)) + CFs[2]/((1+y1)*(1+f12)*(1+f23));
+
+  document.getElementById('eq_res').innerHTML = `
+    <div class="res">
+      <div class="rrow"><span class="rl">f<sub>1;2</sub> (forward)</span><span class="rv ok">${pct(f12)}</span></div>
+      <div class="rrow"><span class="rl">f<sub>2;3</sub> (forward)</span><span class="rv ok">${pct(f23)}</span></div>
+      <div class="rrow"><span class="rl">Prezzo con Spot Rates</span><span class="rv big">${fmt(p_spot,4)}</span></div>
+      <div class="rrow"><span class="rl">Prezzo con Discount Factors</span><span class="rv">${fmt(p_df,4)}</span></div>
+      <div class="rrow"><span class="rl">Prezzo con Forward Rates</span><span class="rv">${fmt(p_fwd,4)}</span></div>
+      <div class="rrow"><span class="rl">I tre metodi concordano?</span><span class="rv grn">${Math.abs(p_spot-p_fwd)<0.0001?'✓ SÌ (diff < 0.0001)':'⚠ NO — controlla i dati'}</span></div>
+    </div>`;
+}
+
+// ── Bootstrap ────────────────────────────────────────────────────────────────
+function solveBootstrap(){
+  const N = 1000;
+  const bonds = [
+    { n:1, c:0,    p:961.538 },
+    { n:2, c:0,    p:924.556 },
+    { n:3, c:0.085,p:994.411 }
+  ];
+  const spots = [];
+  let stepsHtml = '';
+
+  // Sem 1 — ZBG
+  const y1 = N/bonds[0].p - 1;
+  spots.push(y1);
+  stepsHtml += `<div class="step"><strong>Semestre 1 (ZBG):</strong> y₁ = 1000/961.538 - 1 = <span class="ans">${pct(y1,4)}</span></div>`;
+
+  // Sem 2 — ZBG
+  const y2 = Math.sqrt(N/bonds[1].p) - 1;
+  spots.push(y2);
+  const f12 = (1+y2)*(1+y2)/(1+y1) - 1;
+  stepsHtml += `<div class="step"><strong>Semestre 2 (ZBG):</strong> y₂ = (1000/924.556)^0.5 - 1 = <span class="ans">${pct(y2,4)}</span></div>`;
+  stepsHtml += `<div class="step"><strong>Forward f₁;₂:</strong> = (1+y₂)²/(1+y₁) - 1 = <span class="ans">${pct(f12,4)}</span></div>`;
+
+  // Sem 3 — CBG (cedola semestrale = 8.5%/2 * 1000 = 42.5)
+  const coupon3 = bonds[2].c/2 * N;
+  // p3 = coupon3/(1+y1) + coupon3/(1+y2)² + (coupon3+N)/(1+y3)³
+  // solve: (coupon3+N)/(1+y3)³ = p3 - coupon3/(1+y1) - coupon3/(1+y2)²
+  const residual = bonds[2].p - coupon3/(1+y1) - coupon3/Math.pow(1+y2,2);
+  const y3 = Math.pow((coupon3+N)/residual, 1/3) - 1;
+  spots.push(y3);
+  const f23 = Math.pow(1+y3,3)/Math.pow(1+y2,2) - 1;
+  stepsHtml += `<div class="step"><strong>Semestre 3 (CBG, cedola semestrale ${coupon3}):</strong></div>`;
+  stepsHtml += `<div class="step">residuo = 994.411 - ${coupon3}/(1+y₁) - ${coupon3}/(1+y₂)² = ${fmt(residual,4)}</div>`;
+  stepsHtml += `<div class="step">y₃ = (${coupon3+N}/${fmt(residual,4)})^(1/3) - 1 = <span class="ans">${pct(y3,4)}</span></div>`;
+  stepsHtml += `<div class="step"><strong>Forward f₂;₃:</strong> = (1+y₃)³/(1+y₂)² - 1 = <span class="ans">${pct(f23,4)}</span></div>`;
+
+  document.getElementById('bs_y1').textContent = pct(y1,4);
+  document.getElementById('bs_y2').textContent = pct(y2,4);
+  document.getElementById('bs_y3').textContent = pct(y3,4);
+  document.getElementById('bs_f2').textContent = pct(f12,4);
+  document.getElementById('bs_f3').textContent = pct(f23,4);
+
+  const solEl = document.getElementById('s_boot');
+  document.getElementById('boot_steps').innerHTML = stepsHtml;
+  solEl.style.display = 'block';
+  solEl.classList.add('on');
+}
+
+// ── Interactive Bootstrap Table ───────────────────────────────────────────────
+const defaultBonds = [
+  { c: 0,    p: 96.1538 },
+  { c: 0,    p: 92.1895 },
+  { c: 8.5,  p: 99.4411 },
+  { c: 9.0,  p: 101.500 },
+  { c: 7.0,  p: 98.800  }
+];
+
+let sfChart = null;
+
+function initBootstrapTable(){
+  const tbody = document.getElementById('bsBody');
+  tbody.innerHTML = '';
+  defaultBonds.forEach((b,i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td><input class="ig input" type="number" id="bsc_c${i+1}" value="${b.c}" step="0.1" style="width:90px;background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:5px 8px;color:var(--txt);font-family:'Oxygen Mono',monospace;font-size:12px;outline:none"></td>
+      <td><input class="ig input" type="number" id="bsc_p${i+1}" value="${b.p}" step="0.001" style="width:100px;background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:5px 8px;color:var(--txt);font-family:'Oxygen Mono',monospace;font-size:12px;outline:none"></td>
+      <td id="bsc_yr${i+1}" style="text-align:center;color:var(--mut)">—</td>
+      <td id="bsc_fr${i+1}" style="text-align:center;color:var(--mut)">—</td>
+      <td id="bsc_df${i+1}" style="text-align:center;color:var(--mut)">—</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function runBootstrap(){
+  const N = 100;
+  const n = defaultBonds.length;
+  const spots = [];
+  const forwards = [];
+
+  for(let i=0;i<n;i++){
+    const c = parseFloat(document.getElementById(`bsc_c${i+1}`).value)/100;
+    const p = parseFloat(document.getElementById(`bsc_p${i+1}`).value);
+    const coupon = N * c;
+    if(c === 0){
+      // ZBG
+      const y = Math.pow(N/p, 1/(i+1)) - 1;
+      spots.push(y);
+    } else {
+      // CBG — bootstrap
+      let residual = p;
+      for(let j=0;j<i;j++){
+        residual -= coupon / Math.pow(1+spots[j], j+1);
+      }
+      const y = Math.pow((coupon+N)/residual, 1/(i+1)) - 1;
+      spots.push(y);
+    }
+    // forward
+    if(i===0){
+      forwards.push(spots[0]);
+    } else {
+      const fwd = Math.pow(1+spots[i], i+1) / Math.pow(1+spots[i-1], i) - 1;
+      forwards.push(fwd);
+    }
+    // update table
+    document.getElementById(`bsc_yr${i+1}`).textContent = pct(spots[i],4);
+    document.getElementById(`bsc_yr${i+1}`).style.color = 'var(--grn)';
+    document.getElementById(`bsc_fr${i+1}`).textContent = i===0 ? pct(forwards[0],4) : pct(forwards[i],4);
+    document.getElementById(`bsc_fr${i+1}`).style.color = 'var(--blu)';
+    const df = 1/Math.pow(1+spots[i],i+1);
+    document.getElementById(`bsc_df${i+1}`).textContent = fmt(df,5);
+    document.getElementById(`bsc_df${i+1}`).style.color = 'var(--acc)';
+  }
+
+  // chart
+  const labels = spots.map((_,i)=>`P${i+1}`);
+  const spotPcts = spots.map(v=>v*100);
+  const fwdPcts  = forwards.map(v=>v*100);
+
+  if(sfChart){ sfChart.destroy(); }
+  const ctx = document.getElementById('sfChart').getContext('2d');
+  sfChart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        { label:'Spot Rates', data:spotPcts, borderColor:'#d67556', pointBackgroundColor:'#d67556', tension:0.3, fill:false },
+        { label:'Forward Rates', data:fwdPcts, borderColor:'#56b4d6', borderDash:[5,3], pointBackgroundColor:'#56b4d6', tension:0.3, fill:false }
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{labels:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}},
+        tooltip:{backgroundColor:'#272726',borderColor:'#3a3a39',borderWidth:1,titleColor:'#d67556',bodyColor:'#f0f0ef',callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toFixed(4)}%`}} },
+      scales:{
+        x:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11}},grid:{color:'#3a3a39'}},
+        y:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11},callback:v=>v.toFixed(3)+'%'},grid:{color:'#3a3a39'}}
+      }
+    }
+  });
+}
+
+// ── Nav Intersection Observer ─────────────────────────────────────────────────
+function initNav(){
+  const links = document.querySelectorAll('.nav a');
+  const secs  = document.querySelectorAll('.sec');
+  const map   = {};
+  links.forEach(a => { map[a.getAttribute('href').slice(1)] = a; });
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(e.isIntersecting) {
+        links.forEach(l=>l.classList.remove('on'));
+        const lnk = map[e.target.id];
+        if(lnk) lnk.classList.add('on');
+      }
+    });
+  }, {threshold:0.25});
+  secs.forEach(s => obs.observe(s));
+}
+
+// ── On change handlers ────────────────────────────────────────────────────────
+document.getElementById('bg_n').addEventListener('change', rebuildCBGInputs);
+document.getElementById('bc_n').addEventListener('change', rebuildCorpInputs);
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  initYieldCurve();
+  rebuildCBGInputs();
+  rebuildCorpInputs();
+  initBootstrapTable();
+  initNav();
+  // run default calcs
+  calcZBG();
+  runBootstrap();
+});
+</script>
+</body>
+</html>

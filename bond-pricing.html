@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing delle Obbligazioni — Fixed Income Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1f1f1e;--bg1:#272726;--bg2:#2f2f2e;--bg3:#383837;
+  --acc:#d67556;--acc-dim:rgba(214,117,86,.13);
+  --txt:#f0f0ef;--mut:#8a8a89;--bdr:#3a3a39;
+  --grn:#6fcf97;--blu:#56b4d6;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Oxygen Mono',monospace;background:var(--bg);color:var(--txt);line-height:1.8;font-size:13.5px;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-width:220px;background:var(--bg1);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sb-brand{padding:24px 20px 20px;border-bottom:1px solid var(--bdr)}
+.sb-course{font-size:9px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sb-title{font-size:12px;color:var(--txt);line-height:1.5}
+.sb-nav{padding:16px 0;flex:1}
+.sb-section{font-size:9px;color:var(--mut);letter-spacing:.18em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;margin-top:16px}
+.sb-item{display:flex;align-items:flex-start;gap:10px;padding:10px 20px;text-decoration:none;transition:background .15s;cursor:default;position:relative}
+.sb-item.link{cursor:pointer}
+.sb-item.link:hover{background:var(--bg2)}
+.sb-item.active{background:var(--acc-dim)}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--acc)}
+.sb-num{font-size:10px;color:var(--mut);min-width:18px;padding-top:1px}
+.sb-item.active .sb-num{color:var(--acc)}
+.sb-info{flex:1}
+.sb-name{font-size:11px;color:var(--mut);line-height:1.4}
+.sb-item.active .sb-name{color:var(--txt)}
+.sb-item.locked .sb-name{color:var(--bg3)}
+.sb-item.skipped .sb-name{color:var(--bg3)}
+.sb-tag{font-size:9px;margin-top:3px;letter-spacing:.08em}
+.sb-tag.soon{color:var(--bg3)}
+.sb-tag.curr{color:var(--acc)}
+.sb-tag.skip{color:var(--bg3)}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--bdr);font-size:10px;color:var(--bg3)}
+
+/* CONTENT WRAPPER */
+.content{flex:1;min-width:0;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+
+/* HEADER */
+.hdr{border-bottom:1px solid var(--bdr);padding:48px 0 36px}
+.hdr .in{max-width:860px;margin:0 auto;padding:0 40px}
+.hdr .tag{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px}
+.hdr h1{font-size:24px;font-weight:400;line-height:1.3}
+.hdr .sub{color:var(--mut);font-size:11px;margin-top:6px}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(31,31,30,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr);overflow-x:auto}
+.nav .in{max-width:860px;margin:0 auto;padding:0 28px;display:flex}
+.nav a{display:block;padding:13px 12px;font-size:10px;color:var(--mut);text-decoration:none;letter-spacing:.08em;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+.nav a:hover,.nav a.on{color:var(--acc);border-bottom-color:var(--acc)}
+
+/* MAIN */
+main{max-width:860px;margin:0 auto;padding:0 40px 80px;flex:1}
+.sec{padding:60px 0 48px;border-bottom:1px solid var(--bdr)}
+.sec:last-child{border-bottom:none}
+.sec-num{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sec h2{font-size:19px;font-weight:400;margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.sub-h{margin-top:28px}
+.sub-h h3{font-size:10px;color:var(--acc);font-weight:400;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+
+/* PROSE */
+p{margin-bottom:10px}
+ul,ol{padding-left:18px;margin-bottom:10px}
+li{margin-bottom:3px}
+strong{color:var(--acc);font-weight:400}
+em{color:var(--blu);font-style:normal}
+
+/* GRID CARDS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+@media(max-width:580px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:18px 20px}
+.card h4{font-size:10px;color:var(--acc);letter-spacing:.1em;text-transform:uppercase;font-weight:400;margin-bottom:10px}
+
+/* FORMULA BLOCK */
+.fmla{background:var(--bg1);border-left:3px solid var(--acc);border-radius:0 4px 4px 0;padding:18px 22px;margin:18px 0;overflow-x:auto}
+.fmla .fmla-ttl{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px}
+.fmla .katex-display{margin:10px 0}
+.fleg{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);font-size:11.5px;color:var(--mut);line-height:2}
+.fleg span{margin-right:14px}
+
+/* CALCULATOR */
+.calc{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.calc h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:18px}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-bottom:18px}
+.ig{display:flex;flex-direction:column;gap:5px}
+.ig label{font-size:11px;color:var(--mut)}
+.ig input,.ig select{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:8px 10px;color:var(--txt);font-family:'Oxygen Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;width:100%}
+.ig input:focus,.ig select:focus{border-color:var(--acc)}
+.ig select option{background:var(--bg2)}
+.btn{background:var(--acc);color:var(--bg);border:none;border-radius:3px;padding:9px 22px;font-family:'Oxygen Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:.05em;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-o{background:transparent;color:var(--mut);border:1px solid var(--bdr)}
+.btn-o:hover{color:var(--txt);border-color:var(--txt);opacity:1}
+.res{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:14px 18px;margin-top:14px}
+.rrow{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--bdr)}
+.rrow:last-child{border-bottom:none}
+.rl{color:var(--mut);font-size:11.5px}
+.rv{color:var(--txt);font-size:14px}
+.rv.big{color:var(--acc);font-size:18px}
+
+/* CF TABLE */
+.cft{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
+.cft th{text-align:right;padding:7px 12px;color:var(--mut);border-bottom:1px solid var(--bdr);font-weight:400;font-size:10.5px;letter-spacing:.05em}
+.cft th:first-child{text-align:center}
+.cft td{text-align:right;padding:6px 12px;border-bottom:1px solid var(--bdr)}
+.cft td:first-child{text-align:center;color:var(--mut)}
+.cft tr.tot td{color:var(--acc);font-size:13.5px;border-top:2px solid var(--acc);border-bottom:none}
+
+/* CHART */
+.chw{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.chw canvas{max-height:300px}
+.ch-ttl{font-size:10px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+
+/* SLIDER */
+.sg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.sg label{font-size:11px;color:var(--mut)}
+.srow{display:flex;align-items:center;gap:12px}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--bdr);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;background:var(--acc);border-radius:50%;cursor:pointer}
+.sv{min-width:45px;text-align:right;color:var(--acc);font-size:12.5px}
+
+/* EXERCISE */
+.ex{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.ex-lbl{font-size:10px;color:var(--blu);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.ex h4{font-size:13px;font-weight:400;margin-bottom:10px}
+.sol{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)}
+.sol.on{display:block}
+.sol-lbl{font-size:10px;color:var(--grn);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.step{margin-bottom:7px;padding:6px 12px;border-left:2px solid var(--grn);font-size:12.5px}
+.step .ans{color:var(--grn);font-size:14px}
+
+/* RELATION TABLE */
+.rtab{width:100%;border-collapse:collapse;margin:14px 0;font-size:12.5px}
+.rtab th{padding:9px 13px;background:var(--bg2);border:1px solid var(--bdr);color:var(--mut);font-weight:400;font-size:10.5px;letter-spacing:.07em;text-align:left}
+.rtab td{padding:9px 13px;border:1px solid var(--bdr)}
+.rtab tr:nth-child(even) td{background:var(--bg1)}
+.ok{color:var(--grn)}.warn{color:var(--acc)}.info{color:var(--blu)}
+
+/* UTILS */
+.mt16{margin-top:16px}.mt24{margin-top:24px}
+.sm{font-size:12px}.mut{color:var(--mut)}
+.acc{color:var(--acc)}.grn{color:var(--grn)}.blu{color:var(--blu)}
+.pre{font-size:12px;color:var(--acc);background:var(--bg2);padding:10px 14px;border-radius:3px;margin:8px 0;overflow-x:auto;white-space:pre}
+
+/* FOOTER */
+footer{max-width:860px;margin:0 auto;padding:22px 40px;border-top:1px solid var(--bdr);font-size:11px;color:var(--mut);display:flex;justify-content:space-between;width:100%}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-course">Fixed Income Analysis</div>
+    <div class="sb-title">SUPSI — DEASS<br>Fabiano Cavadini</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Lezioni</div>
+
+    <div class="sb-item skipped">
+      <span class="sb-num">01</span>
+      <div class="sb-info">
+        <div class="sb-name">Introduzione ai mercati obbligazionari</div>
+        <div class="sb-tag skip">— saltata —</div>
+      </div>
+    </div>
+
+    <div class="sb-item active link">
+      <span class="sb-num">02</span>
+      <div class="sb-info">
+        <div class="sb-name">Il Pricing delle Obbligazioni</div>
+        <div class="sb-tag curr">in corso</div>
+      </div>
+    </div>
+
+    <a href="lezione3.html" class="sb-item link">
+      <span class="sb-num">03</span>
+      <div class="sb-info">
+        <div class="sb-name">Rendimento</div>
+      </div>
+    </a>
+
+    <a href="lezione4.html" class="sb-item link">
+      <span class="sb-num">04</span>
+      <div class="sb-info">
+        <div class="sb-name">Struttura a Termine</div>
+      </div>
+    </a>
+
+    <a href="lezione5.html" class="sb-item link">
+      <span class="sb-num">05</span>
+      <div class="sb-info">
+        <div class="sb-name">Teorie della Curva Spot</div>
+      </div>
+    </a>
+
+    <a href="lezione6.html" class="sb-item link">
+      <span class="sb-num">06</span>
+      <div class="sb-info">
+        <div class="sb-name">Il Rischio di Tasso</div>
+      </div>
+    </a>
+
+    <div class="sb-item locked">
+      <span class="sb-num">07</span>
+      <div class="sb-info">
+        <div class="sb-name">Lezione 7</div>
+        <div class="sb-tag soon">coming soon</div>
+      </div>
+    </div>
+
+    <div class="sb-item locked">
+      <span class="sb-num">08</span>
+      <div class="sb-info">
+        <div class="sb-name">Lezione 8</div>
+        <div class="sb-tag soon">coming soon</div>
+      </div>
+    </div>
+  </nav>
+  <div class="sb-footer">Fixed Income Analysis<br>© SUPSI 2025</div>
+</aside>
+
+<div class="content">
+
+<header class="hdr">
+  <div class="in">
+    <div class="tag">SUPSI · Fixed Income Analysis · Fabiano Cavadini</div>
+    <h1>Il Pricing delle Obbligazioni</h1>
+    <div class="sub">Guida interattiva completa — teoria, formule, calcolatori, esercizi con soluzioni</div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="in">
+    <a href="#mercato">01 Mercato</a>
+    <a href="#tbill">02 T-Bill / BOT</a>
+    <a href="#coupon">03 Coupon Bond</a>
+    <a href="#zero">04 Zero Bond</a>
+    <a href="#perp">05 Perpetuità</a>
+    <a href="#py">06 Curva P-Y</a>
+    <a href="#intermedia">07 Data Intermedia</a>
+    <a href="#cleandirty">08 Clean / Dirty</a>
+    <a href="#floater">09 Floater</a>
+    <a href="#excel">10 Excel</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════════ 01 MERCATO -->
+<section class="sec" id="mercato">
+  <div class="sec-num">01</div>
+  <h2>Il Mercato delle Obbligazioni</h2>
+
+  <p>Un'<strong>obbligazione</strong> (bond) è un titolo di debito: l'emittente promette di restituire il capitale e pagare gli interessi a scadenze prefissate. I mercati si dividono per vita residua:</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>Mercato Monetario</h4>
+      <ul>
+        <li>Vita residua <strong>&lt; 1 anno</strong></li>
+        <li>Negoziazione <strong>OTC</strong> (mercato all'ingrosso)</li>
+        <li>Accessibile ai privati via fondi d'investimento</li>
+        <li>Interessi: gestione liquidità, shadow banking</li>
+        <li>Titoli: <strong>T-Bill</strong>, BOT, Commercial Paper</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Mercato dei Capitali</h4>
+      <ul>
+        <li>Vita residua <strong>&gt; 1 anno</strong></li>
+        <li>OTC e <strong>borsa</strong> (SIX Swiss Exchange, MOT...)</li>
+        <li>Mercato al dettaglio (&gt; CHF 5'000 / &gt; $1'000)</li>
+        <li>Interessi: finanziamento investimenti, risparmio</li>
+        <li>Titoli: <strong>T-Bond</strong>, BTP, Corporate Bond</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sub-h">
+    <h3>Commercial Paper (CP)</h3>
+    <p>Titolo di debito a breve termine, emesso da imprese con rating eccellente. Non paga cedole: è quotato <strong>a sconto</strong> (come T-Bill e BOT). In USA scadenza &lt; 270 giorni (esenzione SEC), tagli da $100'000. Rendimento dipende dal rating dell'emittente.</p>
+  </div>
+
+  <div class="sub-h">
+    <h3>Rischio e Spread</h3>
+    <p>I corporate bond del mercato monetario offrono rendimenti superiori ai treasury perché presentano <strong>rischio di credito</strong> e sono meno liquidi. Il differenziale si chiama <strong>spread</strong>:</p>
+    <p style="padding:8px 14px;border-left:2px solid var(--acc)">Spread = rendimento corporate − rendimento treasury (stessa scadenza, cedola, periodicità)</p>
+    <p>Lo spread aumenta nei momenti di crisi economica: gli investitori fuggono verso i titoli sicuri (<em>flight to quality</em>).</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 02 T-BILL -->
+<section class="sec" id="tbill">
+  <div class="sec-num">02</div>
+  <h2>Treasury Bill & BOT — Quotazione a Sconto</h2>
+
+  <p>Il <strong>T-Bill</strong> è il titolo monetario più liquido al mondo, emesso dal Tesoro USA. È privo di cedola e privo di rischio di credito. Viene quotato <strong>a sconto</strong> sul nominale con convenzione <em>effettivi/360</em>. I BOT italiani funzionano in modo analogo.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Formule — T-Bill (quotazione a sconto)</div>
+    \[ B = N - S \]
+    \[ S = N \cdot DY \cdot \frac{g_{\text{eff}}}{360} \]
+    <div class="fleg">
+      <span>\(B\) = prezzo (invoice price)</span>
+      <span>\(N\) = valore nominale</span>
+      <span>\(S\) = sconto</span>
+      <span>\(DY\) = Discount Yield annuo</span>
+      <span>\(g_{\text{eff}}\) = giorni effettivi alla scadenza</span>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore T-Bill</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale N ($)</label><input type="number" id="tb-N" value="10000" step="100"></div>
+      <div class="ig"><label>Discount Yield DY (%)</label><input type="number" id="tb-DY" value="7.9125" step="0.01"></div>
+      <div class="ig"><label>Giorni effettivi</label><input type="number" id="tb-days" value="182" step="1"></div>
+    </div>
+    <button class="btn" onclick="calcTBill()">Calcola</button>
+    <div class="res" id="tb-res" style="display:none">
+      <div class="rrow"><span class="rl">Sconto S</span><span class="rv" id="tb-S">—</span></div>
+      <div class="rrow"><span class="rl">Prezzo B</span><span class="rv big" id="tb-B">—</span></div>
+      <div class="rrow"><span class="rl">Prezzo su $100'000 nominale</span><span class="rv" id="tb-B100">—</span></div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio</div>
+    <h4>T-Bill — calcolo prezzo</h4>
+    <p>Calcola il prezzo di un T-Bill con nominale <strong>$10'000</strong>, scadenza <strong>182 giorni</strong>, Discount Yield del <strong>7.9125%</strong>. Qual è il prezzo per $100'000 di nominale?</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-tb')">Mostra soluzione</button>
+    <div class="sol" id="ex-tb">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">\(S = \$10{,}000 \times 7.9125\% \times \frac{182}{360} = \$400.00\)</div>
+      <div class="step">\(B = \$10{,}000 - \$400 =\) <span class="ans">$9'600.00</span></div>
+      <div class="step">Per $100'000 nominale: <span class="ans">$96'000.00</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 03 COUPON BOND -->
+<section class="sec" id="coupon">
+  <div class="sec-num">03</div>
+  <h2>Prezzo di un Coupon Bond</h2>
+
+  <p>Il prezzo di un bond è la <strong>somma dei valori attuali</strong> di tutti i flussi di cassa futuri. Il tasso di attualizzazione \(y\) è il <strong>rendimento alla scadenza</strong> (Yield to Maturity, YTM) — cioè il tasso interno di rendimento dell'investimento.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Formula generale (somma PV dei CF)</div>
+    \[ B = \sum_{k=1}^{n} \frac{CF_k}{(1+y)^k} = \frac{CF_1}{(1+y)^1} + \frac{CF_2}{(1+y)^2} + \cdots + \frac{CF_n}{(1+y)^n} \]
+    <div class="fleg">
+      <span>\(CF_k\) = flusso al periodo \(k\) (cedola \(c \cdot N\) nei periodi intermedi; \((c+1) \cdot N\) all'ultimo)</span>
+      <span>\(y\) = rendimento periodale effettivo</span>
+      <span>\(n\) = numero totale di cedole</span>
+    </div>
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Formula compatta (rendita + valore finale)</div>
+    \[ B = c \cdot N \cdot \frac{1-(1+y)^{-n}}{y} + \frac{N}{(1+y)^n} \]
+    <div class="fleg">
+      <span>\(c = c_a / p\) = tasso cedolare periodale</span>
+      <span>\(y = y_a / p\) = rendimento periodale (per TBond USA: \(p=2\))</span>
+      <span>\(p\) = pagamenti cedolari per anno</span>
+      <span>\(N\) = nominale</span>
+    </div>
+  </div>
+
+  <div class="sub-h">
+    <h3>Convenzioni USA vs Europa</h3>
+    <p>Per i <strong>TBond USA</strong> (\(p=2\)): tasso cedolare annuo e YTM sono tassi nominali convertibili semestralmente. Si divide per 2 per ottenere i tassi periodali. Per i <strong>bond europei</strong> (\(p=1\)): si usano tassi annui effettivi.</p>
+  </div>
+
+  <div class="sub-h">
+    <h3>Relazione Rendimento — Tasso Cedolare — Prezzo</h3>
+    <table class="rtab">
+      <tr><th>Condizione</th><th>Conseguenza</th><th>Spiegazione intuitiva</th></tr>
+      <tr><td>\(y = c\)</td><td class="ok">B = N &nbsp;(alla pari)</td><td>La cedola remunera esattamente il rischio → prezzo uguale al nominale</td></tr>
+      <tr><td>\(y > c\)</td><td class="warn">B &lt; N &nbsp;(sotto la pari)</td><td>La cedola non basta → il prezzo inferiore compensa il rendimento mancante</td></tr>
+      <tr><td>\(y &lt; c\)</td><td class="info">B &gt; N &nbsp;(sopra la pari)</td><td>La cedola è generosa → il mercato paga di più per ottenerla</td></tr>
+    </table>
+    <p class="sm mut">Il prezzo è direttamente proporzionale al nominale: se si conosce il prezzo per N=1'000, basta fare una proporzione per qualsiasi altro nominale.</p>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore Coupon Bond</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale N ($)</label><input type="number" id="cb-N" value="1000" step="100"></div>
+      <div class="ig"><label>Tasso cedolare annuo c_a (%)</label><input type="number" id="cb-ca" value="8" step="0.1"></div>
+      <div class="ig"><label>Rendimento annuo y_a (%)</label><input type="number" id="cb-ya" value="10" step="0.1"></div>
+      <div class="ig"><label>Anni alla scadenza</label><input type="number" id="cb-anni" value="2" step="0.5" min="0.5"></div>
+      <div class="ig"><label>Periodicità p</label>
+        <select id="cb-p">
+          <option value="2">2 — semestrale (TBond USA)</option>
+          <option value="1">1 — annuale (Europa)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="calcCB()">Calcola</button>
+    <div id="cb-res" style="display:none">
+      <div class="res mt16">
+        <div class="rrow"><span class="rl">c periodale</span><span class="rv" id="cb-cper">—</span></div>
+        <div class="rrow"><span class="rl">y periodale</span><span class="rv" id="cb-yper">—</span></div>
+        <div class="rrow"><span class="rl">Numero cedole n</span><span class="rv" id="cb-nn">—</span></div>
+        <div class="rrow"><span class="rl">Prezzo B</span><span class="rv big" id="cb-B">—</span></div>
+        <div class="rrow"><span class="rl">Quotazione (B per 100 di nominale)</span><span class="rv" id="cb-q100">—</span></div>
+        <div class="rrow"><span class="rl">Posizione rispetto alla pari</span><span class="rv" id="cb-pari">—</span></div>
+      </div>
+      <div style="overflow-x:auto"><table class="cft" id="cb-cft"></table></div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio 1 — proporzione col nominale</div>
+    <h4>TBond 8% annuo, 2 anni, YTM 10% (semestrale)</h4>
+    <p>Considera un TBond: cedola annua 8%, 2 anni scadenza, <em>p=2</em>. Il prezzo per N=$1'000 è $964.54.</p>
+    <p><strong>a.</strong> Qual è il prezzo se N = $100?&emsp;<strong>b.</strong> Se N = $50'000?&emsp;<strong>c.</strong> Se il prezzo pagato è $30'865.28, qual è il nominale?</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-cb1')">Mostra soluzione</button>
+    <div class="sol" id="ex-cb1">
+      <div class="sol-lbl">Soluzione</div>
+      <p class="sm mut" style="margin-bottom:8px">Il prezzo è proporzionale al nominale. Con B/N = 964.54/1000:</p>
+      <div class="step"><strong>a.</strong> \(B = \frac{964.54}{1000} \times 100 =\) <span class="ans">$96.454</span></div>
+      <div class="step"><strong>b.</strong> \(B = \frac{964.54}{1000} \times 50{,}000 =\) <span class="ans">$48'227</span></div>
+      <div class="step"><strong>c.</strong> \(N = \frac{1000}{964.54} \times 30{,}865.28 =\) <span class="ans">$32'000</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 04 ZERO BOND -->
+<section class="sec" id="zero">
+  <div class="sec-num">04</div>
+  <h2>Prezzo di uno Zero Coupon Bond</h2>
+
+  <p>Lo <strong>Zero Coupon Bond (ZCB)</strong> non paga cedole: rimborsa esclusivamente il nominale \(N\) a scadenza. Il prezzo è il valore attuale dell'unico flusso futuro. Viene emesso sotto la pari e quotato a sconto — come i BOT e T-Bill ma su orizzonti pluriennali.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Formula Zero Coupon Bond</div>
+    \[ ZB = \frac{N}{(1+y)^n} \]
+    <div class="fleg">
+      <span>\(n\) = numero di periodi alla scadenza</span>
+      <span>\(y\) = rendimento periodale effettivo</span>
+      <span>USA (\(p=2\)): \(y = y_a/2\), \(n = \text{anni} \times 2\)</span>
+      <span>Europa (\(p=1\)): \(y = y_a\), \(n = \text{anni}\)</span>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore Zero Bond</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale N ($)</label><input type="number" id="zb-N" value="100" step="10"></div>
+      <div class="ig"><label>Rendimento annuo y_a (%)</label><input type="number" id="zb-ya" value="1.5" step="0.01"></div>
+      <div class="ig"><label>Anni alla scadenza</label><input type="number" id="zb-anni" value="3" step="1"></div>
+      <div class="ig"><label>Convenzione</label>
+        <select id="zb-p">
+          <option value="2">USA — p=2 (semestrale)</option>
+          <option value="1">Europa — p=1 (annuale)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="calcZB()">Calcola</button>
+    <div id="zb-res" style="display:none">
+      <div class="res mt16">
+        <div class="rrow"><span class="rl">y periodale</span><span class="rv" id="zb-yp">—</span></div>
+        <div class="rrow"><span class="rl">n periodi</span><span class="rv" id="zb-np">—</span></div>
+        <div class="rrow"><span class="rl">Prezzo ZB</span><span class="rv big" id="zb-P">—</span></div>
+        <div class="rrow"><span class="rl">Sconto totale</span><span class="rv" id="zb-disc">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio — ZB USA vs ZB tedesco</div>
+    <h4>Confronto convenzioni</h4>
+    <p><strong>a.</strong> Calcola il prezzo di uno ZB USA (p=2) con N=$100, scadenza 3 anni, YTM 1.5%. E se fosse uno ZB tedesco (p=1)?</p>
+    <p><strong>b.</strong> Uno ZB USA rimborsa $1'000 tra 2 anni. Prezzo oggi: $960.98. Calcola il YTM. E se fosse tedesco?</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-zb')">Mostra soluzione</button>
+    <div class="sol" id="ex-zb">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step"><strong>a. USA:</strong> \(ZB = \frac{100}{(1+0.75\%)^6} = \frac{100}{1.00750^6} \approx\) <span class="ans">$95.64</span></div>
+      <div class="step"><strong>a. Tedesco:</strong> \(ZB = \frac{100}{(1+1.5\%)^3} = \frac{100}{1.01500^3} \approx\) <span class="ans">$95.63</span></div>
+      <div class="step"><strong>b. USA:</strong> \(960.98\left(1+\frac{y_a}{2}\right)^4 = 1000 \Rightarrow y_a = 2\left[\left(\frac{1000}{960.98}\right)^{1/4}-1\right] \approx\) <span class="ans">2.00%</span></div>
+      <div class="step"><strong>b. Tedesco:</strong> \(960.98\,(1+y_a)^2 = 1000 \Rightarrow y_a = \sqrt{1000/960.98}-1 \approx\) <span class="ans">2.01%</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 05 PERPETUITÀ -->
+<section class="sec" id="perp">
+  <div class="sec-num">05</div>
+  <h2>Prezzo di una Perpetuità</h2>
+
+  <p>Un bond <strong>perpetuo</strong> (o <em>consol</em>) non ha scadenza e paga una cedola periodica fissa \(C\) per sempre. Il prezzo emerge dal limite della formula del coupon bond per \(n \to \infty\):</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Formula Perpetuità</div>
+    \[ B_{perp} = \lim_{n \to \infty} C \cdot \frac{1-(1+y)^{-n}}{y} = \frac{C}{y} \]
+    <div class="fleg">
+      <span>\(C\) = cedola periodica (importo fisso in valuta)</span>
+      <span>\(y\) = rendimento periodale effettivo</span>
+    </div>
+  </div>
+
+  <p class="sm">Esempio storico: i <em>War Loan</em> britannici e i <em>consols</em> inglesi sono perpetuità. Anche alcune obbligazioni bancarie subordinate (AT1/CoCo) si approssimano a perpetuità.</p>
+
+  <div class="calc">
+    <h4>Calcolatore Perpetuità</h4>
+    <div class="igrid">
+      <div class="ig"><label>Cedola periodica C ($)</label><input type="number" id="pp-C" value="50" step="1"></div>
+      <div class="ig"><label>Rendimento periodale y (%)</label><input type="number" id="pp-y" value="5" step="0.1"></div>
+    </div>
+    <button class="btn" onclick="calcPerp()">Calcola</button>
+    <div id="pp-res" style="display:none">
+      <div class="res mt16">
+        <div class="rrow"><span class="rl">Prezzo B_perp = C / y</span><span class="rv big" id="pp-B">—</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 06 CURVA P-Y -->
+<section class="sec" id="py">
+  <div class="sec-num">06</div>
+  <h2>Relazione Prezzo — Rendimento alla Scadenza</h2>
+
+  <p>La relazione tra prezzo e rendimento è <strong>inversa e convessa</strong>. Proprietà fondamentali:</p>
+  <ul>
+    <li>Quando \(y\) <strong>aumenta</strong>, \(B\) <strong>diminuisce</strong> (e viceversa)</li>
+    <li>La relazione <strong>non è lineare</strong>: la curva è convessa verso l'origine</li>
+    <li><strong>Convessità</strong>: per variazioni fisse \(\Delta y\), le variazioni di prezzo \(\Delta B\) si riducono al crescere di \(y\)</li>
+    <li>Maggiore è la <strong>scadenza</strong>, maggiore è la sensibilità del prezzo al rendimento (<em>rischio di tasso</em>)</li>
+  </ul>
+
+  <div class="chw">
+    <div class="ch-ttl">Curva Prezzo-Rendimento — muovi i cursori per confrontare scadenze diverse</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:18px">
+      <div class="sg"><label>Scadenza Bond 1 (anni): <span class="sv" id="py1-v">10</span></label><div class="srow"><input type="range" id="py1" min="1" max="50" value="10" oninput="updPY()"></div></div>
+      <div class="sg"><label>Scadenza Bond 2 (anni): <span class="sv" id="py2-v">30</span></label><div class="srow"><input type="range" id="py2" min="1" max="50" value="30" oninput="updPY()"></div></div>
+      <div class="sg"><label>Tasso cedolare (%): <span class="sv" id="pyc-v">10.0</span></label><div class="srow"><input type="range" id="pyc" min="0" max="20" value="10" step="0.5" oninput="updPY()"></div></div>
+    </div>
+    <canvas id="pyChart"></canvas>
+    <p class="sm mut mt16">Il bond a scadenza più lunga (curva più alta a sinistra) ha una curva più ripida: è più sensibile alle variazioni di rendimento. \(N = \$1{,}000\), \(p=2\).</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 07 DATA INTERMEDIA -->
+<section class="sec" id="intermedia">
+  <div class="sec-num">07</div>
+  <h2>Prezzo ad una Data Intermedia fra due Cedole</h2>
+
+  <p>Quando si acquista un bond <strong>tra due date cedolari</strong>, bisogna attualizzare i CF futuri a una data che non coincide con una cedola. La tecnica standard: si calcola il prezzo \(B_0\) all'<em>ultima cedola</em>, poi lo si capitalizza per la frazione di periodo trascorsa \(w\).</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Prezzo effettivo a data intermedia</div>
+    \[ B_w = B_0 \cdot (1+y)^w \]
+    \[ B_0 = C \cdot \frac{1-(1+y)^{-n}}{y} + \frac{N}{(1+y)^n} \]
+    <div class="fleg">
+      <span>\(w = \dfrac{\text{giorni dalla cedola precedente}}{\text{giorni nel periodo cedolare}}\) (frazione di periodo trascorsa)</span>
+      <span>\(n\) = numero di cedole rimanenti (intero, contato dalla cedola precedente)</span>
+      <span>\(C = c \cdot N\) = cedola periodica in valore assoluto</span>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore — Prezzo a Data Intermedia</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale N ($)</label><input type="number" id="im-N" value="100" step="10"></div>
+      <div class="ig"><label>Tasso cedolare annuo c_a (%)</label><input type="number" id="im-ca" value="7" step="0.1"></div>
+      <div class="ig"><label>Rendimento annuo y_a (%)</label><input type="number" id="im-ya" value="7" step="0.1"></div>
+      <div class="ig"><label>Cedole rimanenti n</label><input type="number" id="im-n" value="10" step="1"></div>
+      <div class="ig"><label>Periodicità p</label>
+        <select id="im-p"><option value="2">2 — semestrale</option><option value="1">1 — annuale</option></select>
+      </div>
+      <div class="ig"><label>Giorni trascorsi dalla cedola</label><input type="number" id="im-de" value="2" step="1"></div>
+      <div class="ig"><label>Giorni nel periodo cedolare</label><input type="number" id="im-dp" value="184" step="1"></div>
+    </div>
+    <button class="btn" onclick="calcIM()">Calcola</button>
+    <div id="im-res" style="display:none">
+      <div class="res mt16">
+        <div class="rrow"><span class="rl">w (frazione trascorsa)</span><span class="rv" id="im-w">—</span></div>
+        <div class="rrow"><span class="rl">B₀ (alla cedola precedente)</span><span class="rv" id="im-B0">—</span></div>
+        <div class="rrow"><span class="rl">Prezzo effettivo B_w</span><span class="rv big" id="im-Bw">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio — Slide 18</div>
+    <h4>TBond 3.5% / 3.5% YTM — acquistato 2 giorni dopo l'emissione</h4>
+    <p>Bond: emissione 29.07.2000, <strong>acquisto 31.07.2000</strong>, scadenza 29.07.2005, YTM = 3.5%, cedola annua = 3.5%, p=2. Giorni nel semestre: 184. Giorni trascorsi: 2. Calcola \(B_0\) e \(B_w\).</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-im')">Mostra soluzione</button>
+    <div class="sol" id="ex-im">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">\(c = 3.5\%/2 = 1.75\%\); \(y = 3.5\%/2 = 1.75\%\). Poiché \(y = c\): \(B_0 = N = 100\)</div>
+      <div class="step">\(w = 2/184 = 0.010870\)</div>
+      <div class="step">\(B_w = 100 \times (1.0175)^{0.010870} =\) <span class="ans">100.0374</span></div>
+      <div class="step acc">Il prezzo è sopra 100 perché l'acquirente riceve la prima cedola tra meno di un semestre → la paga anticipatamente nel prezzo.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 08 CLEAN/DIRTY -->
+<section class="sec" id="cleandirty">
+  <div class="sec-num">08</div>
+  <h2>Prezzo Effettivo (Dirty) e Prezzo Quotato (Clean)</h2>
+
+  <p>Il mercato riporta il <strong>prezzo quotato</strong> \(P\) (<em>clean price</em>), non il prezzo effettivamente pagato \(B\) (<em>dirty price</em>). La differenza sono gli <strong>interessi maturati</strong> (AI, <em>accrued interest</em>): la quota di cedola maturata dal venditore durante il periodo di detenzione.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Clean Price — Dirty Price — Accrued Interest</div>
+    \[ P = B - AI \qquad \text{(clean = dirty − accrued)} \]
+    \[ AI = C \cdot w \]
+    <div class="fleg">
+      <span>\(P\) = prezzo quotato (clean price)</span>
+      <span>\(B\) = prezzo effettivo pagato (dirty price)</span>
+      <span>\(AI\) = interessi maturati (accrued interest)</span>
+      <span>\(C\) = cedola periodica</span>
+      <span>\(w\) = frazione di periodo trascorsa</span>
+      <span>TBond: convenzione eff./eff. &ensp;|&ensp; Corporate USA: 30/360</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin:18px 0">
+    <h4>Perché si usa il Clean Price?</h4>
+    <p class="sm">Il <strong>prezzo quotato rimane stabile</strong> nel tempo se il rendimento del bond non cambia. Il dirty price invece cresce linearmente tra due date cedolari (accumulo degli interessi) e cade bruscamente il giorno del pagamento. Il clean price elimina questa discontinuità artificiale e rende comparabili bond con cedole in date diverse.</p>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore Clean / Dirty Price</h4>
+    <div class="igrid">
+      <div class="ig"><label>Prezzo effettivo B ($)</label><input type="number" id="cd-B" value="107.32" step="0.01"></div>
+      <div class="ig"><label>Cedola periodica C ($)</label><input type="number" id="cd-C" value="6" step="0.01"></div>
+      <div class="ig"><label>Giorni trascorsi (x)</label><input type="number" id="cd-x" value="123" step="1"></div>
+      <div class="ig"><label>Giorni nel periodo (z)</label><input type="number" id="cd-z" value="184" step="1"></div>
+    </div>
+    <button class="btn" onclick="calcCD()">Calcola</button>
+    <div id="cd-res" style="display:none">
+      <div class="res mt16">
+        <div class="rrow"><span class="rl">w = x/z</span><span class="rv" id="cd-w">—</span></div>
+        <div class="rrow"><span class="rl">AI = C × w</span><span class="rv" id="cd-AI">—</span></div>
+        <div class="rrow"><span class="rl">Clean Price P = B − AI</span><span class="rv big" id="cd-P">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chw mt24">
+    <div class="ch-ttl">Evoluzione Clean / Dirty Price nel tempo (3 periodi cedolari)</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:16px">
+      <div class="ig"><label>Nominale N</label><input type="number" id="ev-N" value="100" oninput="updEv()"></div>
+      <div class="ig"><label>Cedola sem. c (%)</label><input type="number" id="ev-c" value="3.5" step="0.1" oninput="updEv()"></div>
+      <div class="ig"><label>Rendimento sem. y (%)</label><input type="number" id="ev-y" value="3.5" step="0.1" oninput="updEv()"></div>
+      <div class="ig"><label>Cedole rimanenti (inizio)</label><input type="number" id="ev-n" value="10" step="1" oninput="updEv()"></div>
+    </div>
+    <canvas id="evChart"></canvas>
+    <p class="sm mut mt16">Il dirty price (blu) cresce continuamente tra le cedole e salta indietro al pagamento. Il clean price (arancio) resta invece piatto se il rendimento è stabile. Gli interessi maturati (verde tratteggiato) crescono linearmente da 0 a C ogni periodo.</p>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio — Slide 21</div>
+    <h4>TBond 12% — Clean price il 15 settembre</h4>
+    <p>Il <strong>15.09</strong> un TBond cedola annua 12% con scadenza il <strong>15.11.2035</strong> ha un prezzo effettivo (dirty) di <strong>$107.32</strong>. Calcola il prezzo quotato (clean price).</p>
+    <p class="sm mut">Cedola precedente: 15.05 — Cedola successiva: 15.11 — Giorni nel semestre: 184 — Giorni trascorsi dal 15.05 al 15.09: 123.</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-cd')">Mostra soluzione</button>
+    <div class="sol" id="ex-cd">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">Cedola semestrale: \(C = 12\%/2 \times \$100 = \$6\)</div>
+      <div class="step">\(w = 123/184 = 0.6685\)</div>
+      <div class="step">\(AI = 6 \times 0.6685 = \$4.01\)</div>
+      <div class="step">\(P = B - AI = 107.32 - 4.01 =\) <span class="ans">$103.31</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 09 FLOATER -->
+<section class="sec" id="floater">
+  <div class="sec-num">09</div>
+  <h2>Floating Rate Bond (Floater)</h2>
+
+  <p>Un <strong>floater</strong> paga cedole variabili indicizzate a un tasso di riferimento (es. LIBOR6m, EURIBOR3m) più uno spread. Ogni volta che viene fissata la cedola, il rendimento corrisponde a quello richiesto dal mercato, e quindi il prezzo <strong>torna al nominale</strong> (\(B = N\)).</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Prezzo Floater a data intermedia</div>
+    \[ B_{f,w} = \frac{N + C}{(1+y)^{1-w}} \]
+    <div class="fleg">
+      <span>\(C\) = prossima cedola variabile (già determinata al reset precedente)</span>
+      <span>\(1-w\) = frazione di periodo rimanente alla prossima cedola</span>
+      <span>\(y\) = rendimento attuale di mercato (LIBOR/EURIBOR + spread)</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin:18px 0">
+    <h4>Logica intuitiva</h4>
+    <p class="sm">Il floater si comporta come un bond a un solo periodo: alla prossima data cedolare paga \(N + C\) e poi "si resetta" al nominale. Quindi il suo prezzo oggi è semplicemente il valore attuale di \((N+C)\) scontato per la fraction di periodo rimanente.</p>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore Floater</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale N ($)</label><input type="number" id="fl-N" value="100" step="10"></div>
+      <div class="ig"><label>Prossima cedola C ($)</label><input type="number" id="fl-C" value="2.5" step="0.01"></div>
+      <div class="ig"><label>Rendimento attuale y (%)</label><input type="number" id="fl-y" value="3" step="0.01"></div>
+      <div class="ig"><label>Giorni trascorsi</label><input type="number" id="fl-de" value="120" step="1"></div>
+      <div class="ig"><label>Giorni nel periodo</label><input type="number" id="fl-dp" value="182" step="1"></div>
+    </div>
+    <button class="btn" onclick="calcFL()">Calcola</button>
+    <div id="fl-res" style="display:none">
+      <div class="res mt16">
+        <div class="rrow"><span class="rl">w</span><span class="rv" id="fl-w">—</span></div>
+        <div class="rrow"><span class="rl">1 − w (periodi alla prossima cedola)</span><span class="rv" id="fl-1mw">—</span></div>
+        <div class="rrow"><span class="rl">Prezzo Floater B_f,w</span><span class="rv big" id="fl-B">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio — Floater LIBOR6m + 1%</div>
+    <h4>Tre valutazioni in date diverse</h4>
+    <p><strong>a.</strong> 1.6.2014 — cedola appena pagata, LIBOR6m = 5%. Prezzo?</p>
+    <p><strong>b.</strong> 1.12.2014 — cedola appena pagata (stesse assunzioni). Prezzo?</p>
+    <p><strong>c.</strong> 1.4.2015 — LIBOR oggi = 2%, era 4% il 1.12.2014. Prezzo? (2/6 del periodo è trascorso)</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-fl')">Mostra soluzione</button>
+    <div class="sol" id="ex-fl">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step"><strong>a.</strong> Prossima cedola = \((5\%+1\%)/2 \times 100 = \$3\). \(w=0\). \(B = (100+3)/(1+3\%) = 100\)</div>
+      <div class="step"><strong>b.</strong> Coincide con data di reset → \(B =\) <span class="ans">100</span></div>
+      <div class="step"><strong>c.</strong> Cedola fissata 1.12.2014: \(C = (4\%+1\%)/2 \times 100 = \$2.5\). Rendimento ora: \(y=(2\%+1\%)/2=1.5\%\). \(w=2/6\). \(B = 102.5/(1.015)^{2/3} \approx\) <span class="ans">101.49</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 10 EXCEL -->
+<section class="sec" id="excel">
+  <div class="sec-num">10</div>
+  <h2>Formule Excel per il Pricing</h2>
+
+  <p>Excel dispone di funzioni dedicate per calcolare direttamente il <strong>clean price</strong> e gli <strong>interessi maturati</strong> di un bond, senza dovere eseguire manualmente la somma dei PV.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>PREZZO() — Clean Price</h4>
+      <p class="sm" style="margin-bottom:8px">Restituisce il prezzo quotato per 100 di nominale.</p>
+      <div class="pre">PREZZO(
+  data_valut.;
+  data_scad.;
+  tasso_cedolare;
+  ytm;
+  rimborso;
+  freq;
+  [conv_giorni]
+)</div>
+      <ul class="sm" style="margin-top:8px">
+        <li><span class="acc">data_valut.</span> = data acquisto</li>
+        <li><span class="acc">data_scad.</span> = data scadenza</li>
+        <li><span class="acc">tasso_cedolare</span> = cedola annua decimale</li>
+        <li><span class="acc">ytm</span> = rendimento annuo decimale</li>
+        <li><span class="acc">rimborso</span> = 100 (per 100 di nominale)</li>
+        <li><span class="acc">freq</span> = 1 (ann.) / 2 (sem.)</li>
+        <li><span class="acc">conv_giorni</span> = 1 (eff/eff)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>INT.MATURATO.PER() — Accrued Interest</h4>
+      <p class="sm" style="margin-bottom:8px">Restituisce gli interessi maturati pro rata.</p>
+      <div class="pre">INT.MATURATO.PER(
+  data_emiss.;
+  data_prima_cedola;
+  data_valuta;
+  tasso_cedolare;
+  nominale;
+  freq;
+  [conv_giorni]
+)</div>
+      <ul class="sm" style="margin-top:8px">
+        <li><span class="acc">Dirty Price</span> = PREZZO() + INT.MATURATO.PER()</li>
+        <li>conv=0: US 30/360 (corporate USA)</li>
+        <li>conv=1: Eff/Eff (TBond, BTP, Eurobond)</li>
+        <li>conv=4: Euro 30/360 (bond europei)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Esempio completo — Bond slide 18 (emissione 29.7.2000, acquisto 31.7.2000, scadenza 29.7.2005, cedola 7%, YTM 7%)</div>
+    <p class="sm">Giorni tra emissione e prima cedola:</p>
+    <div class="pre">DATA(2001;1;29) - DATA(2000;7;29)  ➜  184</div>
+    <p class="sm" style="margin-top:10px">Prezzo quotato (clean price):</p>
+    <div class="pre">PREZZO(DATA(2000;07;31); DATA(2005;07;29); 7%; 7%; 100; 2; 1)  ➜  99.9994</div>
+    <p class="sm" style="margin-top:10px">Interessi maturati (accrued interest):</p>
+    <div class="pre">INT.MATURATO.PER(DATA(2000;7;29); DATA(2001;1;29); DATA(2000;7;31); 7%; 100; 2; 1)  ➜  0.03804</div>
+    <p class="sm acc" style="margin-top:10px">Prezzo effettivo (dirty) = 99.9994 + 0.03804 = <strong>100.0374</strong></p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>SUPSI · DEASS · Fixed Income Analysis · Fabiano Cavadini · 04.02.2025</span>
+  <span>Guida interattiva v1.0</span>
+</footer>
+
+</div><!-- /content -->
+
+<script>
+// ─── utils ───────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmt = (v, d=2) => v.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct = (v, d=4) => fmt(v*100,d)+'%';
+const show = id => $(id).style.display='block';
+const hide = id => $(id).style.display='none';
+
+function togSol(id){
+  const el=$(id);
+  const on=el.classList.toggle('on');
+  el.previousElementSibling.textContent=on?'Nascondi soluzione':'Mostra soluzione';
+}
+
+function cbPrice(c,y,N,n){
+  if(Math.abs(y)<1e-12) return N*(1+n*c);
+  return c*N*(1-Math.pow(1+y,-n))/y + N*Math.pow(1+y,-n);
+}
+
+// ─── T-Bill ──────────────────────────────────────────────
+function calcTBill(){
+  const N=+$('tb-N').value, DY=+$('tb-DY').value/100, d=+$('tb-days').value;
+  const S=N*DY*d/360, B=N-S;
+  $('tb-S').textContent='$'+fmt(S);
+  $('tb-B').textContent='$'+fmt(B);
+  $('tb-B100').textContent='$'+fmt(B/N*100000);
+  show('tb-res');
+}
+
+// ─── Coupon Bond ─────────────────────────────────────────
+function calcCB(){
+  const N=+$('cb-N').value, ca=+$('cb-ca').value/100, ya=+$('cb-ya').value/100;
+  const anni=+$('cb-anni').value, p=+$('cb-p').value;
+  const c=ca/p, y=ya/p, n=Math.round(anni*p);
+  const B=cbPrice(c,y,N,n);
+
+  $('cb-cper').textContent=pct(c);
+  $('cb-yper').textContent=pct(y);
+  $('cb-nn').textContent=n;
+  $('cb-B').textContent='$'+fmt(B);
+  $('cb-q100').textContent=fmt(B/N*100,4);
+  const diff=B-N;
+  $('cb-pari').textContent=Math.abs(diff)<0.01?'Alla pari':(diff<0?'Sotto la pari (discount bond)':'Sopra la pari (premium bond)');
+
+  let rows='<thead><tr><th>t</th><th>CF</th><th>(1+y)⁻ᵗ</th><th>PV(CF)</th></tr></thead><tbody>';
+  let sum=0;
+  for(let k=1;k<=n;k++){
+    const CF=k<n?c*N:(c+1)*N;
+    const disc=Math.pow(1+y,-k);
+    const pv=CF*disc; sum+=pv;
+    rows+=`<tr><td>${k}</td><td>${fmt(CF)}</td><td>${fmt(disc,5)}</td><td>${fmt(pv)}</td></tr>`;
+  }
+  rows+=`</tbody><tfoot><tr class="tot"><td>∑</td><td></td><td></td><td>${fmt(sum)}</td></tr></tfoot>`;
+  $('cb-cft').innerHTML=rows;
+  show('cb-res');
+}
+
+// ─── Zero Bond ───────────────────────────────────────────
+function calcZB(){
+  const N=+$('zb-N').value, ya=+$('zb-ya').value/100;
+  const anni=+$('zb-anni').value, p=+$('zb-p').value;
+  const y=ya/p, n=anni*p;
+  const ZB=N/Math.pow(1+y,n);
+
+  $('zb-yp').textContent=pct(y);
+  $('zb-np').textContent=n;
+  $('zb-P').textContent='$'+fmt(ZB);
+  $('zb-disc').textContent='$'+fmt(N-ZB)+' ('+fmt((1-ZB/N)*100,2)+'%)';
+  show('zb-res');
+}
+
+// ─── Perpetuità ──────────────────────────────────────────
+function calcPerp(){
+  const C=+$('pp-C').value, y=+$('pp-y').value/100;
+  $('pp-B').textContent='$'+fmt(C/y);
+  show('pp-res');
+}
+
+// ─── Price-Yield Chart ───────────────────────────────────
+let pyChart=null;
+
+function pyData(anni,cRate,pts=120){
+  const ys=[],ps=[];
+  for(let i=0;i<=pts;i++){
+    const ya=i*0.20/pts;
+    const N=1000,p=2,c=cRate/p,y=ya/p,n=anni*p;
+    ys.push((ya*100).toFixed(2));
+    ps.push(cbPrice(c,y,N,n));
+  }
+  return{ys,ps};
+}
+
+function updPY(){
+  const a1=+$('py1').value, a2=+$('py2').value, coupon=+$('pyc').value;
+  $('py1-v').textContent=a1; $('py2-v').textContent=a2; $('pyc-v').textContent=coupon.toFixed(1);
+  const d1=pyData(a1,coupon/100), d2=pyData(a2,coupon/100);
+  pyChart.data.labels=d1.ys;
+  pyChart.data.datasets[0].data=d1.ps;
+  pyChart.data.datasets[0].label=a1+'Y, c='+coupon+'%';
+  pyChart.data.datasets[1].data=d2.ps;
+  pyChart.data.datasets[1].label=a2+'Y, c='+coupon+'%';
+  pyChart.update();
+}
+
+function initPY(){
+  const d1=pyData(10,0.10), d2=pyData(30,0.10);
+  pyChart=new Chart($('pyChart'),{
+    type:'line',
+    data:{
+      labels:d1.ys,
+      datasets:[
+        {label:'10Y, c=10%',data:d1.ps,borderColor:'#d67556',borderWidth:2,pointRadius:0,tension:0.3,backgroundColor:'transparent'},
+        {label:'30Y, c=10%',data:d2.ps,borderColor:'#56b4d6',borderWidth:2,pointRadius:0,tension:0.3,backgroundColor:'transparent'}
+      ]
+    },
+    options:{
+      responsive:true,
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{labels:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}},
+        tooltip:{backgroundColor:'#272726',borderColor:'#3a3a39',borderWidth:1,
+          titleColor:'#d67556',bodyColor:'#f0f0ef',
+          titleFont:{family:'Oxygen Mono',size:11},bodyFont:{family:'Oxygen Mono',size:11},
+          callbacks:{title:i=>'YTM: '+i[0].label+'%',label:i=>i.dataset.label+': $'+parseFloat(i.raw).toFixed(2)}}
+      },
+      scales:{
+        x:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono',size:10},maxTicksLimit:11,callback:(v,i)=>i%12===0?d1.ys[i]+'%':''},
+          grid:{color:'#2a2a29'},
+          title:{display:true,text:'Rendimento YTM (%)',color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}},
+        y:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono',size:10},callback:v=>'$'+v.toFixed(0)},
+          grid:{color:'#2a2a29'},
+          title:{display:true,text:'Prezzo ($, N=1000)',color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}}
+      }
+    }
+  });
+}
+
+// ─── Data Intermedia ─────────────────────────────────────
+function calcIM(){
+  const N=+$('im-N').value, ca=+$('im-ca').value/100, ya=+$('im-ya').value/100;
+  const n=+$('im-n').value, p=+$('im-p').value;
+  const de=+$('im-de').value, dp=+$('im-dp').value;
+  const c=ca/p, y=ya/p, w=de/dp;
+  const B0=cbPrice(c,y,N,n);
+  const Bw=B0*Math.pow(1+y,w);
+  $('im-w').textContent=w.toFixed(6);
+  $('im-B0').textContent='$'+fmt(B0);
+  $('im-Bw').textContent='$'+fmt(Bw);
+  show('im-res');
+}
+
+// ─── Clean/Dirty ─────────────────────────────────────────
+function calcCD(){
+  const B=+$('cd-B').value, C=+$('cd-C').value;
+  const x=+$('cd-x').value, z=+$('cd-z').value;
+  const w=x/z, AI=C*w, P=B-AI;
+  $('cd-w').textContent=w.toFixed(6);
+  $('cd-AI').textContent='$'+fmt(AI);
+  $('cd-P').textContent='$'+fmt(P);
+  show('cd-res');
+}
+
+// ─── Evolution Chart ─────────────────────────────────────
+let evChart=null;
+
+function evData(){
+  const N=+$('ev-N').value||100;
+  const c=+$('ev-c').value/100||0.035;
+  const y=+$('ev-y').value/100||0.035;
+  const n0=+$('ev-n').value||10;
+  const C=c*N; const steps=60; const periods=3;
+  const xs=[],dirty=[],clean=[],ai=[];
+  for(let p=0;p<periods;p++){
+    const n=n0-p; if(n<=0) break;
+    const B0=cbPrice(c,y,N,n);
+    for(let i=(p>0?1:0);i<=steps;i++){
+      const w=i/steps;
+      const Bw=B0*Math.pow(1+y,w);
+      const AI=C*w;
+      xs.push((p+w).toFixed(3));
+      dirty.push(Bw);
+      clean.push(Bw-AI);
+      ai.push(AI);
+    }
+  }
+  return{xs,dirty,clean,ai};
+}
+
+function updEv(){
+  if(!evChart) return;
+  const{xs,dirty,clean,ai}=evData();
+  evChart.data.labels=xs;
+  evChart.data.datasets[0].data=dirty;
+  evChart.data.datasets[1].data=clean;
+  evChart.data.datasets[2].data=ai;
+  evChart.update();
+}
+
+function initEv(){
+  const{xs,dirty,clean,ai}=evData();
+  evChart=new Chart($('evChart'),{
+    type:'line',
+    data:{
+      labels:xs,
+      datasets:[
+        {label:'Dirty Price (B)',data:dirty,borderColor:'#56b4d6',borderWidth:2,pointRadius:0,tension:0,backgroundColor:'transparent'},
+        {label:'Clean Price (P)',data:clean,borderColor:'#d67556',borderWidth:2,pointRadius:0,tension:0,backgroundColor:'transparent'},
+        {label:'Accrued Interest (AI)',data:ai,borderColor:'#6fcf97',borderWidth:1.5,borderDash:[5,5],pointRadius:0,tension:0,backgroundColor:'transparent'}
+      ]
+    },
+    options:{
+      responsive:true,
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{labels:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}},
+        tooltip:{backgroundColor:'#272726',borderColor:'#3a3a39',borderWidth:1,
+          titleColor:'#d67556',bodyColor:'#f0f0ef',
+          titleFont:{family:'Oxygen Mono',size:11},bodyFont:{family:'Oxygen Mono',size:11},
+          callbacks:{label:i=>i.dataset.label+': $'+parseFloat(i.raw).toFixed(4)}}
+      },
+      scales:{
+        x:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono',size:10},maxTicksLimit:10},
+          grid:{color:'#2a2a29'},
+          title:{display:true,text:'Periodi cedolari',color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}},
+        y:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono',size:10},callback:v=>'$'+v.toFixed(2)},
+          grid:{color:'#2a2a29'}}
+      }
+    }
+  });
+}
+
+// ─── Floater ─────────────────────────────────────────────
+function calcFL(){
+  const N=+$('fl-N').value, C=+$('fl-C').value, y=+$('fl-y').value/100;
+  const de=+$('fl-de').value, dp=+$('fl-dp').value;
+  const w=de/dp;
+  const Bf=(N+C)/Math.pow(1+y,1-w);
+  $('fl-w').textContent=w.toFixed(6);
+  $('fl-1mw').textContent=(1-w).toFixed(6);
+  $('fl-B').textContent='$'+fmt(Bf);
+  show('fl-res');
+}
+
+// ─── Active Nav ──────────────────────────────────────────
+function initNav(){
+  const secs=document.querySelectorAll('.sec');
+  const links=document.querySelectorAll('.nav a');
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        links.forEach(a=>a.classList.remove('on'));
+        const lnk=document.querySelector('.nav a[href="#'+e.target.id+'"]');
+        if(lnk) lnk.classList.add('on');
+      }
+    });
+  },{threshold:0.25});
+  secs.forEach(s=>obs.observe(s));
+}
+
+// ─── Init ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(()=>{ initPY(); initEv(); },150);
+  initNav();
+});
+</script>
+</body>
+</html>

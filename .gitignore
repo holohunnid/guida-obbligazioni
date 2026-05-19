@@ -1,0 +1,10 @@
+.claude/
+remotion-presentazione/
+remotion-presentazione.zip
+
+node_modules/
+dist/
+build/
+
+.DS_Store
+Thumbs.db

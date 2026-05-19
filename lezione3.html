@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Il Rendimento dell'Investimento Obbligazionario — Fixed Income Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1f1f1e;--bg1:#272726;--bg2:#2f2f2e;--bg3:#383837;
+  --acc:#d67556;--acc-dim:rgba(214,117,86,.13);
+  --txt:#f0f0ef;--mut:#8a8a89;--bdr:#3a3a39;
+  --grn:#6fcf97;--blu:#56b4d6;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Oxygen Mono',monospace;background:var(--bg);color:var(--txt);line-height:1.8;font-size:13.5px;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-width:220px;background:var(--bg1);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sb-brand{padding:24px 20px 20px;border-bottom:1px solid var(--bdr)}
+.sb-course{font-size:9px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sb-title{font-size:12px;color:var(--txt);line-height:1.5}
+.sb-nav{padding:16px 0;flex:1}
+.sb-section{font-size:9px;color:var(--mut);letter-spacing:.18em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;margin-top:16px}
+.sb-item{display:flex;align-items:flex-start;gap:10px;padding:10px 20px;text-decoration:none;transition:background .15s;cursor:default;position:relative}
+.sb-item.link{cursor:pointer}
+.sb-item.link:hover{background:var(--bg2)}
+.sb-item.active{background:var(--acc-dim)}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--acc)}
+.sb-num{font-size:10px;color:var(--mut);min-width:18px;padding-top:1px}
+.sb-item.active .sb-num{color:var(--acc)}
+.sb-info{flex:1}
+.sb-name{font-size:11px;color:var(--mut);line-height:1.4}
+.sb-item.active .sb-name{color:var(--txt)}
+.sb-item.locked .sb-name{color:var(--bg3)}
+.sb-item.skipped .sb-name{color:var(--bg3)}
+.sb-tag{font-size:9px;margin-top:3px;letter-spacing:.08em}
+.sb-tag.soon{color:var(--bg3)}
+.sb-tag.curr{color:var(--acc)}
+.sb-tag.skip{color:var(--bg3)}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--bdr);font-size:10px;color:var(--bg3)}
+
+/* CONTENT WRAPPER */
+.content{flex:1;min-width:0;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+
+/* HEADER */
+.hdr{border-bottom:1px solid var(--bdr);padding:48px 0 36px}
+.hdr .in{max-width:860px;margin:0 auto;padding:0 40px}
+.hdr .tag{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px}
+.hdr h1{font-size:24px;font-weight:400;line-height:1.3}
+.hdr .sub{color:var(--mut);font-size:11px;margin-top:6px}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(31,31,30,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr);overflow-x:auto}
+.nav .in{max-width:860px;margin:0 auto;padding:0 28px;display:flex}
+.nav a{display:block;padding:13px 12px;font-size:10px;color:var(--mut);text-decoration:none;letter-spacing:.08em;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+.nav a:hover,.nav a.on{color:var(--acc);border-bottom-color:var(--acc)}
+
+/* MAIN */
+main{max-width:860px;margin:0 auto;padding:0 40px 80px;flex:1}
+.sec{padding:60px 0 48px;border-bottom:1px solid var(--bdr)}
+.sec:last-child{border-bottom:none}
+.sec-num{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sec h2{font-size:19px;font-weight:400;margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.sub-h{margin-top:28px}
+.sub-h h3{font-size:10px;color:var(--acc);font-weight:400;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+
+/* PROSE */
+p{margin-bottom:10px}
+ul,ol{padding-left:18px;margin-bottom:10px}
+li{margin-bottom:3px}
+strong{color:var(--acc);font-weight:400}
+em{color:var(--blu);font-style:normal}
+
+/* GRID CARDS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+@media(max-width:580px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:18px 20px}
+.card h4{font-size:10px;color:var(--acc);letter-spacing:.1em;text-transform:uppercase;font-weight:400;margin-bottom:10px}
+
+/* FORMULA BLOCK */
+.fmla{background:var(--bg1);border-left:3px solid var(--acc);border-radius:0 4px 4px 0;padding:18px 22px;margin:18px 0;overflow-x:auto}
+.fmla .fmla-ttl{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px}
+.fmla .katex-display{margin:10px 0}
+.fleg{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);font-size:11.5px;color:var(--mut);line-height:2}
+.fleg span{margin-right:14px}
+
+/* CALCULATOR */
+.calc{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.calc h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:18px}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-bottom:18px}
+.ig{display:flex;flex-direction:column;gap:5px}
+.ig label{font-size:11px;color:var(--mut)}
+.ig input,.ig select{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:8px 10px;color:var(--txt);font-family:'Oxygen Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;width:100%}
+.ig input:focus,.ig select:focus{border-color:var(--acc)}
+.ig select option{background:var(--bg2)}
+.btn{background:var(--acc);color:var(--bg);border:none;border-radius:3px;padding:9px 22px;font-family:'Oxygen Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:.05em;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-o{background:transparent;color:var(--mut);border:1px solid var(--bdr)}
+.btn-o:hover{color:var(--txt);border-color:var(--txt);opacity:1}
+.btn-sm{padding:5px 14px;font-size:11px}
+.res{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:14px 18px;margin-top:14px}
+.rrow{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--bdr)}
+.rrow:last-child{border-bottom:none}
+.rl{color:var(--mut);font-size:11.5px}
+.rv{color:var(--txt);font-size:14px}
+.rv.big{color:var(--acc);font-size:18px}
+
+/* CF TABLE */
+.cft{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
+.cft th{text-align:right;padding:7px 12px;color:var(--mut);border-bottom:1px solid var(--bdr);font-weight:400;font-size:10.5px;letter-spacing:.05em}
+.cft th:first-child{text-align:center}
+.cft td{text-align:right;padding:6px 12px;border-bottom:1px solid var(--bdr)}
+.cft td:first-child{text-align:center;color:var(--mut)}
+.cft tr.tot td{color:var(--acc);font-size:13.5px;border-top:2px solid var(--acc);border-bottom:none}
+
+/* CHART */
+.chw{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.chw canvas{max-height:340px}
+.ch-ttl{font-size:10px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+
+/* SLIDER */
+.sg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.sg label{font-size:11px;color:var(--mut)}
+.srow{display:flex;align-items:center;gap:12px}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--bdr);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;background:var(--acc);border-radius:50%;cursor:pointer}
+.sv{min-width:45px;text-align:right;color:var(--acc);font-size:12.5px}
+
+/* EXERCISE */
+.ex{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.ex-lbl{font-size:10px;color:var(--blu);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.ex h4{font-size:13px;font-weight:400;margin-bottom:10px}
+.sol{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)}
+.sol.on{display:block}
+.sol-lbl{font-size:10px;color:var(--grn);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.step{margin-bottom:7px;padding:6px 12px;border-left:2px solid var(--grn);font-size:12.5px}
+.step .ans{color:var(--grn);font-size:14px}
+
+/* RELATION TABLE */
+.rtab{width:100%;border-collapse:collapse;margin:14px 0;font-size:12.5px}
+.rtab th{padding:9px 13px;background:var(--bg2);border:1px solid var(--bdr);color:var(--mut);font-weight:400;font-size:10.5px;letter-spacing:.07em;text-align:left}
+.rtab td{padding:9px 13px;border:1px solid var(--bdr)}
+.rtab tr:nth-child(even) td{background:var(--bg1)}
+.ok{color:var(--grn)}.warn{color:var(--acc)}.info{color:var(--blu)}
+
+/* CONDITION BOX */
+.cbox{border:1px solid var(--acc);border-radius:4px;padding:14px 18px;margin:18px 0;background:var(--acc-dim)}
+.cbox h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:8px}
+
+/* PORTFOLIO BOND ROW */
+.bond-row{display:grid;grid-template-columns:repeat(5,1fr) auto;gap:8px;align-items:end;margin-bottom:10px}
+.bond-row .ig label{font-size:10px}
+.bond-row .ig input{font-size:12px;padding:6px 8px}
+.bond-del{background:transparent;border:1px solid var(--bdr);color:var(--mut);border-radius:3px;padding:6px 10px;font-family:'Oxygen Mono',monospace;font-size:11px;cursor:pointer;height:34px;align-self:end}
+.bond-del:hover{color:var(--acc);border-color:var(--acc)}
+
+/* UTILS */
+.mt16{margin-top:16px}.mt24{margin-top:24px}
+.sm{font-size:12px}.mut{color:var(--mut)}
+.acc{color:var(--acc)}.grn{color:var(--grn)}.blu{color:var(--blu)}
+.pre{font-size:12px;color:var(--acc);background:var(--bg2);padding:10px 14px;border-radius:3px;margin:8px 0;overflow-x:auto;white-space:pre}
+.info-box{border-left:2px solid var(--blu);padding:8px 14px;margin:12px 0;font-size:12.5px;color:var(--mut)}
+
+/* FOOTER */
+footer{max-width:860px;margin:0 auto;padding:22px 40px;border-top:1px solid var(--bdr);font-size:11px;color:var(--mut);display:flex;justify-content:space-between;width:100%}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-course">Fixed Income Analysis</div>
+    <div class="sb-title">SUPSI — DEASS<br>Fabiano Cavadini</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Lezioni</div>
+
+    <div class="sb-item skipped">
+      <span class="sb-num">01</span>
+      <div class="sb-info">
+        <div class="sb-name">Introduzione ai mercati obbligazionari</div>
+        <div class="sb-tag skip">— saltata —</div>
+      </div>
+    </div>
+
+    <a class="sb-item link" href="bond-pricing.html">
+      <span class="sb-num">02</span>
+      <div class="sb-info">
+        <div class="sb-name">Il Pricing delle Obbligazioni</div>
+        <div class="sb-tag"></div>
+      </div>
+    </a>
+
+    <div class="sb-item active">
+      <span class="sb-num">03</span>
+      <div class="sb-info">
+        <div class="sb-name">Il Rendimento dell'Investimento</div>
+        <div class="sb-tag curr">in corso</div>
+      </div>
+    </div>
+
+    <a href="lezione4.html" class="sb-item link">
+      <span class="sb-num">04</span>
+      <div class="sb-info">
+        <div class="sb-name">Struttura a Termine</div>
+      </div>
+    </a>
+
+    <a href="lezione5.html" class="sb-item link">
+      <span class="sb-num">05</span>
+      <div class="sb-info">
+        <div class="sb-name">Teorie della Curva Spot</div>
+      </div>
+    </a>
+
+    <a href="lezione6.html" class="sb-item link">
+      <span class="sb-num">06</span>
+      <div class="sb-info">
+        <div class="sb-name">Il Rischio di Tasso</div>
+      </div>
+    </a>
+
+    <div class="sb-item locked">
+      <span class="sb-num">07</span>
+      <div class="sb-info">
+        <div class="sb-name">Lezione 7</div>
+        <div class="sb-tag soon">coming soon</div>
+      </div>
+    </div>
+
+    <div class="sb-item locked">
+      <span class="sb-num">08</span>
+      <div class="sb-info">
+        <div class="sb-name">Lezione 8</div>
+        <div class="sb-tag soon">coming soon</div>
+      </div>
+    </div>
+  </nav>
+  <div class="sb-footer">Fixed Income Analysis<br>© SUPSI 2025</div>
+</aside>
+
+<div class="content">
+
+<header class="hdr">
+  <div class="in">
+    <div class="tag">SUPSI · Fixed Income Analysis · Fabiano Cavadini</div>
+    <h1>Il Rendimento dell'Investimento Obbligazionario</h1>
+    <div class="sub">Lezione 03 — Fixed Income Analysis · SUPSI</div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="in">
+    <a href="#intro">01 Intro</a>
+    <a href="#hpr">02 HPR</a>
+    <a href="#hpr-zero">03 Zero / T-Bill</a>
+    <a href="#hpr-coupon">04 Coupon Bond</a>
+    <a href="#hpr-annuo">05 HPR Annuo</a>
+    <a href="#componenti">06 Componenti</a>
+    <a href="#misure-ex-ante">07 Ex Ante</a>
+    <a href="#ytm">08 YTM</a>
+    <a href="#ytc">09 YTC</a>
+    <a href="#portafoglio">10 Portafoglio</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════════ 01 INTRO -->
+<section class="sec" id="intro">
+  <div class="sec-num">01</div>
+  <h2>Introduzione — Perché Misurare il Rendimento?</h2>
+
+  <p>I diversi strumenti del mercato obbligazionario usano <strong>convenzioni di quotazione diverse</strong>. Il mercato monetario quota i titoli a sconto (T-Bill, BOT, Commercial Paper) tramite il <strong>Discount Yield (DY)</strong>; il mercato dei capitali quota i coupon bond tramite il <strong>Yield to Maturity (YTM)</strong>.</p>
+
+  <p>Per confrontare strumenti con orizzonti temporali, strutture cedolari e convenzioni di quotazione diversi, serve una <strong>misura comune</strong>: l'<strong>Holding Period Return (HPR)</strong>, il tasso di rendimento effettivamente realizzato (o atteso) durante il periodo di detenzione.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>Misure di mercato</h4>
+      <ul>
+        <li><strong>DY</strong> — Discount Yield: per T-Bill, BOT, CP. Tasso annuo su base 360 giorni, calcolato sul nominale. Non confrontabile direttamente.</li>
+        <li><strong>YTM</strong> — Yield to Maturity: per coupon bond. TIR del flusso di cassa, valido solo sotto ipotesi specifiche di reinvestimento.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Misura di confronto</h4>
+      <ul>
+        <li><strong>HPR</strong> — Holding Period Return: rendimento effettivo per qualsiasi orizzonte. Dipende da: prezzo acquisto, prezzo vendita, cedole ricevute e tasso di reinvestimento delle cedole.</li>
+        <li>Annualizzato → confronto diretto tra investimenti su orizzonti diversi.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-box">
+    In questa lezione: definiamo l'HPR in generale, lo calcoliamo per zero bond e coupon bond, lo annualizziamo, analizziamo le sue componenti, e introduciamo le misure di rendimento ex ante: nominal yield, current yield, YTM, yield to call, e YTM di portafoglio.
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 02 HPR -->
+<section class="sec" id="hpr">
+  <div class="sec-num">02</div>
+  <h2>L'Holding Period Return (HPR)</h2>
+
+  <p>L'<strong>HPR</strong> è il tasso di crescita che trasforma il valore iniziale \(V_0\) nel valore finale \(V_T\) al termine del periodo di detenzione \(T\). È una misura ex post (o ex ante attesa) del rendimento periodale.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Definizione HPR</div>
+    \[ V_0 \cdot (1 + HPR) = V_T \iff HPR = \frac{V_T - V_0}{V_0} \]
+    <div class="fleg">
+      <span>\(V_0\) = valore iniziale dell'investimento</span>
+      <span>\(V_T\) = valore finale al termine del periodo</span>
+      <span>\(HPR\) = tasso di rendimento del periodo (holding period)</span>
+    </div>
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">HPR per un bond — Equazione fondamentale</div>
+    \[ B_0 \cdot (1 + HPR) = B_T + \sum_{i=1}^{n} FV_T(CF_i) \]
+    <div class="fleg">
+      <span>\(B_0\) = prezzo di acquisto (esborso iniziale)</span>
+      <span>\(B_T\) = prezzo di vendita a fine periodo</span>
+      <span>\(FV_T(CF_i)\) = valore futuro della \(i\)-esima cedola, capitalizzata al tasso di reinvestimento \(y_r\) fino a \(T\)</span>
+      <span>\(n\) = numero di cedole ricevute durante il periodo di detenzione</span>
+    </div>
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">FV totale delle cedole — reinvestimento a tasso costante yr</div>
+    \[ \sum_{i=1}^{n} FV_T(CF_i) = C \cdot \frac{(1+y_r)^n - 1}{y_r} \]
+    <div class="fleg">
+      <span>\(C\) = cedola periodica (importo costante)</span>
+      <span>\(y_r\) = tasso di reinvestimento periodale (assunto costante)</span>
+      <span>\(n\) = numero di cedole</span>
+      <span>Questa è la formula del montante di una rendita posticipata</span>
+    </div>
+  </div>
+
+  <div class="sub-h">
+    <h3>Nota sul reinvestimento</h3>
+    <p>In generale ogni cedola \(CF_i\) ricevuta al tempo \(t_i\) viene reinvestita al proprio tasso \(y_{r,i}\) per il periodo rimanente \(T - t_i\), quindi \(FV_T(CF_i) = CF_i \cdot (1+y_{r,i})^{T-t_i}\). La formula del montante della rendita vale solo quando tutti i tassi di reinvestimento sono uguali: \(y_{r,i} = y_r\). Nella pratica \(y_r\) è <strong>incerto ex ante</strong> e costituisce la principale fonte di rischio di reinvestimento.</p>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore HPR Generale</h4>
+    <div class="igrid">
+      <div class="ig"><label>Prezzo acquisto B₀ ($)</label><input type="number" id="hpr-B0" value="9600" step="1"></div>
+      <div class="ig"><label>Prezzo vendita B_T ($)</label><input type="number" id="hpr-BT" value="0" step="1"></div>
+      <div class="ig"><label>FV totale cedole capitalizzate ($)</label><input type="number" id="hpr-FVC" value="0" step="0.01"></div>
+    </div>
+    <button class="btn" onclick="calcHPRgen()">Calcola</button>
+    <div class="res" id="hpr-gen-res" style="display:none">
+      <div class="rrow"><span class="rl">Valore finale V_T = B_T + FV cedole</span><span class="rv" id="hpr-VT">—</span></div>
+      <div class="rrow"><span class="rl">Profitto = V_T − B₀</span><span class="rv" id="hpr-prof">—</span></div>
+      <div class="rrow"><span class="rl">HPR = (V_T − B₀) / B₀</span><span class="rv big" id="hpr-val">—</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 03 HPR ZERO BOND -->
+<section class="sec" id="hpr-zero">
+  <div class="sec-num">03</div>
+  <h2>HPR di uno Zero Bond / T-Bill</h2>
+
+  <p>Per un <strong>zero coupon bond</strong> non vi sono cedole da reinvestire: l'unico flusso è il rimborso del nominale \(N\) a scadenza. L'HPR è quindi determinato <strong>con certezza ex ante</strong> se tenuto fino a scadenza.</p>
+
+  <p>Per un <strong>T-Bill</strong>: il prezzo si calcola come \(B = N - S\), dove \(S = N \cdot DY \cdot g/360\) è lo sconto basato sul Discount Yield annuo e sui giorni effettivi.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">HPR di uno Zero Bond</div>
+    \[ HPR_{ZB} = \frac{N - B_0}{B_0} = \frac{S}{B} \]
+    <div class="fleg">
+      <span>\(N\) = nominale (valore di rimborso)</span>
+      <span>\(B_0\) = prezzo di acquisto</span>
+      <span>\(S = N - B_0\) = sconto totale (per T-Bill: \(S = N \cdot DY \cdot g/360\))</span>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore T-Bill HPR</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale N ($)</label><input type="number" id="tbhpr-N" value="10000" step="100"></div>
+      <div class="ig"><label>Discount Yield DY (%)</label><input type="number" id="tbhpr-DY" value="7.9125" step="0.01"></div>
+      <div class="ig"><label>Giorni effettivi g</label><input type="number" id="tbhpr-g" value="182" step="1"></div>
+    </div>
+    <button class="btn" onclick="calcTBillHPR()">Calcola</button>
+    <div class="res" id="tbhpr-res" style="display:none">
+      <div class="rrow"><span class="rl">Sconto S = N · DY · g/360</span><span class="rv" id="tbhpr-S">—</span></div>
+      <div class="rrow"><span class="rl">Prezzo B = N − S</span><span class="rv" id="tbhpr-B">—</span></div>
+      <div class="rrow"><span class="rl">HPR periodale = S / B</span><span class="rv" id="tbhpr-HPR">—</span></div>
+      <div class="rrow"><span class="rl">HPR annuo equivalente = (1+HPR)^(365/g) − 1</span><span class="rv big" id="tbhpr-HPRa">—</span></div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio</div>
+    <h4>T-Bill 182 giorni, DY = 7.9125%, N = $10'000</h4>
+    <p>Un T-Bill con nominale <strong>$10'000</strong>, scadenza <strong>182 giorni</strong> e Discount Yield <strong>7.9125%</strong>. Calcola il prezzo di acquisto, l'HPR periodale e l'HPR annuo equivalente.</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-tbhpr')">Mostra soluzione</button>
+    <div class="sol" id="ex-tbhpr">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">\(S = 10{,}000 \times 7.9125\% \times \frac{182}{360} = \$400.00\)</div>
+      <div class="step">\(B = 10{,}000 - 400 =\) <span class="ans">$9'600</span></div>
+      <div class="step">\(HPR = \frac{400}{9{,}600} = \frac{S}{B} =\) <span class="ans">4.167%</span></div>
+      <div class="step">\(HPR_a = (1.04167)^{365/182} - 1 \approx\) <span class="ans">8.49%</span></div>
+      <p class="sm mut" style="margin-top:8px">Nota: si usa 365 giorni per l'annualizzazione dell'HPR (convenzione dei mercati azionari e monetari), non 360 come per il DY.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 04 HPR COUPON BOND -->
+<section class="sec" id="hpr-coupon">
+  <div class="sec-num">04</div>
+  <h2>HPR di un Coupon Bond</h2>
+
+  <p>Per un <strong>coupon bond</strong>, l'HPR dipende da quattro elementi: il prezzo di acquisto \(B_0\), il prezzo di vendita \(B_T\) (incerto se venduto prima della scadenza), le <strong>cedole ricevute</strong> durante il periodo, e il <strong>tasso di reinvestimento</strong> \(y_r\) a cui vengono reinvestite le cedole.</p>
+
+  <p>A differenza dello zero bond, l'HPR di un coupon bond è generalmente <strong>incerto ex ante</strong> a meno che non siano noti con certezza sia il prezzo di vendita che il tasso di reinvestimento.</p>
+
+  <div class="calc">
+    <h4>Calcolatore HPR Coupon Bond</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale N ($)</label><input type="number" id="cbhpr-N" value="1000" step="100"></div>
+      <div class="ig"><label>Tasso cedolare annuo ca (%)</label><input type="number" id="cbhpr-ca" value="6" step="0.1"></div>
+      <div class="ig"><label>Periodicità p</label>
+        <select id="cbhpr-p">
+          <option value="2">2 — semestrale</option>
+          <option value="1">1 — annuale</option>
+        </select>
+      </div>
+      <div class="ig"><label>Prezzo acquisto B₀ (% di N)</label><input type="number" id="cbhpr-B0pct" value="99" step="0.01"></div>
+      <div class="ig"><label>Prezzo vendita B_T (% di N)</label><input type="number" id="cbhpr-BTpct" value="101.75" step="0.01"></div>
+      <div class="ig"><label>Numero cedole ricevute n</label><input type="number" id="cbhpr-n" value="4" step="1"></div>
+      <div class="ig"><label>Tasso reinvestimento periodale yr (%)</label><input type="number" id="cbhpr-yr" value="1" step="0.01"></div>
+    </div>
+    <button class="btn" onclick="calcCBHPR()">Calcola</button>
+    <div id="cbhpr-res" style="display:none">
+      <div class="res mt16">
+        <div class="rrow"><span class="rl">Cedola periodale C</span><span class="rv" id="cbhpr-C">—</span></div>
+        <div class="rrow"><span class="rl">Prezzo acquisto B₀ ($)</span><span class="rv" id="cbhpr-B0abs">—</span></div>
+        <div class="rrow"><span class="rl">Prezzo vendita B_T ($)</span><span class="rv" id="cbhpr-BTabs">—</span></div>
+        <div class="rrow"><span class="rl">FV totale cedole capitalizzate</span><span class="rv" id="cbhpr-FVC">—</span></div>
+        <div class="rrow"><span class="rl">Valore finale V_T = B_T + FV cedole</span><span class="rv" id="cbhpr-VT">—</span></div>
+        <div class="rrow"><span class="rl">Profitto = V_T − B₀</span><span class="rv" id="cbhpr-prof">—</span></div>
+        <div class="rrow"><span class="rl">HPR periodale (su n cedole)</span><span class="rv" id="cbhpr-HPR">—</span></div>
+        <div class="rrow"><span class="rl">Anni detenuto (= n/p)</span><span class="rv" id="cbhpr-anni">—</span></div>
+        <div class="rrow"><span class="rl">HPR annuo equivalente</span><span class="rv big" id="cbhpr-HPRa">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio</div>
+    <h4>6% TBond (p=2) — detenuto 2 anni</h4>
+    <p>Un TBond con cedola annua <strong>6%</strong> (semestrale, \(p=2\)). Acquistato a <strong>99</strong> (per 100 di nominale), venduto a <strong>101.75</strong> appena dopo la 4ª cedola (dopo 2 anni). Tasso di reinvestimento periodale \(y_r = 1\%\) (semestrale). Con \(N = \$1{,}000\):
+    </p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-cbhpr')">Mostra soluzione</button>
+    <div class="sol" id="ex-cbhpr">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">Cedola semestrale: \(C = 6\%/2 \times 1{,}000 = \$30\)</div>
+      <div class="step">\(B_0 = 99\% \times 1{,}000 = \$990\) &ensp;|&ensp; \(B_T = 101.75\% \times 1{,}000 = \$1{,}017.50\)</div>
+      <div class="step">\(n = 4\) cedole semestrali in 2 anni</div>
+      <div class="step">\(FV_{cedole} = 30 \cdot \frac{(1.01)^4 - 1}{0.01} = 30 \times 4.0604 = \$121.81\)</div>
+      <div class="step">\(V_T = 1{,}017.50 + 121.81 = \$1{,}139.31\)</div>
+      <div class="step">\(HPR = \frac{1{,}139.31 - 990}{990} =\) <span class="ans">15.08%</span> (sull'intero periodo di 2 anni)</div>
+      <div class="step">\(HPR_a = (1.1508)^{1/2} - 1 \approx\) <span class="ans">7.29%</span> per anno</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 05 HPR ANNUO -->
+<section class="sec" id="hpr-annuo">
+  <div class="sec-num">05</div>
+  <h2>HPR Annuo Equivalente</h2>
+
+  <p>Per confrontare rendimenti realizzati su orizzonti temporali diversi occorre <strong>annualizzare</strong> l'HPR. Il principio dei tassi equivalenti afferma che due tassi sono equivalenti se producono lo stesso montante sullo stesso capitale in un anno.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Annualizzazione dell'HPR — tassi equivalenti</div>
+    \[ (1 + HPR_a)^t = (1 + HPR) \iff HPR_a = (1+HPR)^{1/t} - 1 \]
+    <div class="fleg">
+      <span>\(t\) = durata del periodo in anni (può essere &lt; 1 oppure &gt; 1)</span>
+      <span>\(HPR\) = holding period return del periodo</span>
+      <span>\(HPR_a\) = HPR annuo equivalente (tasso effettivo annuo)</span>
+    </div>
+  </div>
+
+  <p>Esempi: per un T-Bill di 182 giorni, \(t = 182/365 \approx 0.499\) anni. Per il coupon bond detenuto 2 anni, \(t = 2\). La domanda diventa: quale investimento è migliore, 4.17% per 182 giorni o 15.08% per 2 anni?</p>
+
+  <div class="calc">
+    <h4>Calcolatore HPR ↔ HPR Annuo</h4>
+    <div class="igrid">
+      <div class="ig"><label>HPR periodale (%)</label><input type="number" id="ann-HPR" value="4.167" step="0.001"></div>
+      <div class="ig"><label>Durata t (anni, decimale ammesso)</label><input type="number" id="ann-t" value="0.4986" step="0.0001"></div>
+    </div>
+    <button class="btn" onclick="calcAnn()">Calcola HPRa</button>
+    <div class="res" id="ann-res" style="display:none">
+      <div class="rrow"><span class="rl">HPR periodale</span><span class="rv" id="ann-hpr-out">—</span></div>
+      <div class="rrow"><span class="rl">Durata t (anni)</span><span class="rv" id="ann-t-out">—</span></div>
+      <div class="rrow"><span class="rl">HPR annuo equivalente = (1+HPR)^(1/t) − 1</span><span class="rv big" id="ann-hpra-out">—</span></div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio — Confronto T-Bill vs Coupon Bond</div>
+    <h4>Quale investimento rende di più?</h4>
+    <p><strong>A)</strong> T-Bill 182 giorni: \(HPR = 4.167\%\), \(t = 182/365 \approx 0.4986\) anni.</p>
+    <p><strong>B)</strong> Coupon Bond 2 anni: \(HPR = 15.08\%\), \(t = 2\) anni, con \(y_r = 1\%\) periodale.</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-ann')">Mostra soluzione</button>
+    <div class="sol" id="ex-ann">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step"><strong>A) T-Bill:</strong> \(HPR_a = (1.04167)^{1/0.4986} - 1 = (1.04167)^{2.0056} - 1 \approx\) <span class="ans">8.49%</span></div>
+      <div class="step"><strong>B) Coupon Bond:</strong> \(HPR_a = (1.1508)^{1/2} - 1 \approx\) <span class="ans">7.29%</span></div>
+      <div class="step acc">Il T-Bill ha un HPR annuo maggiore (8.49% vs 7.29%), ma questa conclusione dipende dall'ipotesi che le cedole vengano reinvestite al tasso yr=1% semestrale. Con un tasso di reinvestimento più alto, il coupon bond potrebbe risultare migliore.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 06 COMPONENTI HPR -->
+<section class="sec" id="componenti">
+  <div class="sec-num">06</div>
+  <h2>Le 3 Componenti dell'HPR</h2>
+
+  <p>L'HPR di un coupon bond è la somma di tre componenti distinte, la cui importanza relativa varia con l'orizzonte di detenzione:</p>
+  <ol>
+    <li><strong>Variazione di prezzo</strong> (capital gain / capital loss): determinata dalla variazione dello YTM di mercato e dall'avvicinarsi alla scadenza. Domina sugli orizzonti brevi.</li>
+    <li><strong>Pagamenti cedolari</strong>: cresce linearmente con il tempo. Domina sugli orizzonti medi.</li>
+    <li><strong>Interessi sulle cedole reinvestite</strong> (reinvestment income): cresce in modo esponenziale con l'orizzonte. Domina sugli orizzonti lunghi.</li>
+  </ol>
+
+  <p class="sm mut">Esempio: bond N=1000, cedola 8% annua (p=1), emesso alla pari con y0=8%. Dopo l'emissione il rendimento di mercato e il tasso di reinvestimento salgono a y1=yr=11%. Analizziamo HPR per holding period di 1, 10 e 18 anni su un bond con scadenza a 20 anni.</p>
+
+  <div style="overflow-x:auto">
+  <table class="cft" style="margin-top:16px">
+    <thead>
+      <tr>
+        <th style="text-align:left">Componente</th>
+        <th>HP = 1 anno</th>
+        <th>HP = 10 anni</th>
+        <th>HP = 18 anni</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td style="text-align:left;color:var(--txt)">Cedole ricevute</td><td>80</td><td>800</td><td>1'440</td></tr>
+      <tr><td style="text-align:left;color:var(--txt)">Interessi su cedole reinvestite</td><td>0</td><td>537.76</td><td>2'591.67</td></tr>
+      <tr><td style="text-align:left;color:var(--txt)">Prezzo di vendita B_T</td><td>764.82</td><td>823.32</td><td>948.62</td></tr>
+      <tr><td style="text-align:left;color:var(--txt)">Valore finale V_T</td><td>844.82</td><td>2'161.08</td><td>4'980.29</td></tr>
+      <tr><td style="text-align:left;color:var(--txt)">Profitto (V_T − 1000)</td><td style="color:var(--acc)">−155.18</td><td style="color:var(--grn)">+1'161.08</td><td style="color:var(--grn)">+3'980.29</td></tr>
+      <tr class="tot"><td style="text-align:left">HPR annuo</td><td style="color:var(--acc)">−15.52%</td><td style="color:var(--grn)">8.01%</td><td style="color:var(--grn)">9.33%</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p class="sm mut">Nota: con HP=1, la perdita in conto capitale (−235.18) domina sulle cedole ricevute (80). Con HP lungo, gli interessi di reinvestimento diventano preponderanti — e poiché yr=11%>y0=8%, l'HPR supera il YTM originario.</p>
+
+  <div class="chw">
+    <div class="ch-ttl">Grafico interattivo — Componenti HPR per diversi orizzonti di detenzione</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:18px">
+      <div class="ig"><label>Tasso cedolare annuo c (%)</label><input type="number" id="comp-c" value="8" step="0.5" min="0" max="20" oninput="updCompChart()"></div>
+      <div class="ig"><label>YTM iniziale y0 (%)</label><input type="number" id="comp-y0" value="8" step="0.5" min="0.5" max="20" oninput="updCompChart()"></div>
+      <div class="ig"><label>YTM finale y1 (%)</label><input type="number" id="comp-y1" value="11" step="0.5" min="0.5" max="20" oninput="updCompChart()"></div>
+      <div class="ig"><label>Tasso reinvestimento yr (%)</label><input type="number" id="comp-yr" value="11" step="0.5" min="0" max="20" oninput="updCompChart()"></div>
+      <div class="ig"><label>Periodicità p</label>
+        <select id="comp-p" onchange="updCompChart()">
+          <option value="1">1 — annuale</option>
+          <option value="2">2 — semestrale</option>
+        </select>
+      </div>
+      <div class="ig"><label>Anni a scadenza</label><input type="number" id="comp-tot" value="20" step="1" min="5" max="50" oninput="updCompChart()"></div>
+    </div>
+    <canvas id="compChart"></canvas>
+    <p class="sm mut mt16">Le barre mostrano il valore finale suddiviso in: cedole + interessi reinvestimento (verde) e prezzo di vendita (blu). La linea arancione indica il prezzo di acquisto B₀. L'altezza delle barre rispetto a B₀ mostra il profitto.</p>
+  </div>
+
+  <div style="overflow-x:auto;margin-top:16px">
+    <table class="cft" id="comp-table">
+      <thead><tr>
+        <th style="text-align:left">HP (anni)</th>
+        <th>B₀</th><th>B_T</th><th>Cedole FV</th><th>V_T</th><th>Profitto</th><th>HPR annuo</th>
+      </tr></thead>
+      <tbody id="comp-tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 07 MISURE EX ANTE -->
+<section class="sec" id="misure-ex-ante">
+  <div class="sec-num">07</div>
+  <h2>Misure di Rendimento Ex Ante</h2>
+
+  <p>Le misure ex ante cercano di stimare il rendimento <em>prima</em> di conoscere il prezzo di vendita e il tasso di reinvestimento effettivi. Sono ordinabili per grado di sofisticazione crescente:</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Nominal Yield e Current Yield</div>
+    \[ n_y = \frac{c^a}{N} \qquad c_y = \frac{c^a}{B} \]
+    <div class="fleg">
+      <span>\(n_y\) = nominal yield (rendimento nominale): cedola annua / nominale</span>
+      <span>\(c_y\) = current yield (rendimento corrente): cedola annua / prezzo effettivo</span>
+      <span>\(c^a\) = cedola annua in valore assoluto</span>
+      <span>Entrambe ignorano il capital gain/loss (differenza tra prezzo acquisto e rimborso a scadenza)</span>
+    </div>
+  </div>
+
+  <div class="sub-h">
+    <h3>Relazioni tra le misure di rendimento</h3>
+    <table class="rtab">
+      <tr>
+        <th>Condizione</th>
+        <th>Nominal Yield ny</th>
+        <th>Current Yield cy</th>
+        <th>YTM y</th>
+      </tr>
+      <tr>
+        <td>Bond alla pari (B = N)</td>
+        <td class="ok">ny = y</td>
+        <td class="ok">cy = y</td>
+        <td class="ok">y = ny = cy</td>
+      </tr>
+      <tr>
+        <td>Bond sopra la pari (B &gt; N)</td>
+        <td class="info">ny &gt; cy</td>
+        <td class="info">cy &gt; y</td>
+        <td class="info">ny &gt; cy &gt; y</td>
+      </tr>
+      <tr>
+        <td>Bond sotto la pari (B &lt; N)</td>
+        <td class="warn">ny &lt; cy</td>
+        <td class="warn">cy &lt; y</td>
+        <td class="warn">ny &lt; cy &lt; y</td>
+      </tr>
+    </table>
+    <p class="sm mut">Intuizione: quando il bond è sotto la pari (B &lt; N), lo YTM include il capital gain futuro (N − B) > 0, quindi y &gt; cy &gt; ny.</p>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore Nominal Yield e Current Yield</h4>
+    <div class="igrid">
+      <div class="ig"><label>Cedola annua ca ($)</label><input type="number" id="ny-ca" value="100" step="1"></div>
+      <div class="ig"><label>Nominale N ($)</label><input type="number" id="ny-N" value="1000" step="100"></div>
+      <div class="ig"><label>Prezzo effettivo B ($)</label><input type="number" id="ny-B" value="1124.75" step="0.01"></div>
+    </div>
+    <button class="btn" onclick="calcNY()">Calcola</button>
+    <div class="res" id="ny-res" style="display:none">
+      <div class="rrow"><span class="rl">Nominal Yield ny = ca / N</span><span class="rv" id="ny-out">—</span></div>
+      <div class="rrow"><span class="rl">Current Yield cy = ca / B</span><span class="rv big" id="cy-out">—</span></div>
+      <div class="rrow"><span class="rl">Posizione rispetto alla pari</span><span class="rv" id="ny-pari">—</span></div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio</div>
+    <h4>Bond 10%, N = $1'000, B = $1'124.75</h4>
+    <p>Un bond con cedola annua del <strong>10%</strong>, nominale <strong>$1'000</strong>, quotato a <strong>$1'124.75</strong>. Calcola nominal yield e current yield.</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-ny')">Mostra soluzione</button>
+    <div class="sol" id="ex-ny">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">Cedola annua: \(c^a = 10\% \times \$1{,}000 = \$100\)</div>
+      <div class="step">\(n_y = \frac{100}{1{,}000} =\) <span class="ans">10.00%</span></div>
+      <div class="step">\(c_y = \frac{100}{1{,}124.75} =\) <span class="ans">8.89%</span></div>
+      <div class="step acc">Il bond è sopra la pari (B=1124.75 &gt; N=1000) → ny &gt; cy &gt; y (YTM sarà ancora inferiore a cy)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 08 YTM -->
+<section class="sec" id="ytm">
+  <div class="sec-num">08</div>
+  <h2>Yield to Maturity (YTM)</h2>
+
+  <p>Lo <strong>Yield to Maturity (YTM)</strong>, detto anche <em>rendimento alla scadenza</em>, è il tasso \(y\) che eguaglia la somma dei valori attuali di tutti i flussi di cassa futuri al prezzo di mercato del bond. È equivalente al <strong>TIR (Tasso Interno di Rendimento)</strong> dell'investimento.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Definizione YTM — equazione di pricing</div>
+    \[ B = \frac{C}{(1+y)^1} + \frac{C}{(1+y)^2} + \cdots + \frac{C+N}{(1+y)^n} = C \cdot \frac{1-(1+y)^{-n}}{y} + \frac{N}{(1+y)^n} \]
+    <div class="fleg">
+      <span>\(C = c \cdot N\) = cedola periodica</span>
+      <span>\(y\) = YTM periodale (si trova per bisection / Newton)</span>
+      <span>\(n = \text{anni} \times p\) = numero totale di cedole</span>
+      <span>YTM annuo nominale = \(y \times p\) &ensp;|&ensp; YTM annuo effettivo = \((1+y)^p - 1\)</span>
+    </div>
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Formula approssimativa YTM</div>
+    \[ y \approx \frac{C + \dfrac{N-B}{n}}{\dfrac{N+B}{2}} \]
+    <div class="fleg">
+      <span>Numeratore: cedola periodale + capital gain/loss ammortizzato su n periodi</span>
+      <span>Denominatore: media aritmetica tra prezzo e nominale</span>
+      <span>Utile come punto di partenza; meno precisa per bond lontani dalla pari</span>
+    </div>
+  </div>
+
+  <div class="cbox">
+    <h4>Quando y = HPR?</h4>
+    <p class="sm">Lo YTM coincide con l'HPR annualizzato <strong>se e solo se</strong> sono verificate tutte e tre le condizioni:</p>
+    <ol class="sm" style="margin-top:6px">
+      <li>I pagamenti cedolari avvengono alle scadenze previste (nessun default)</li>
+      <li>Il bond è <strong>tenuto fino a scadenza</strong> oppure venduto allo stesso YTM di acquisto</li>
+      <li>Ogni cedola ricevuta viene <strong>reinvestita allo stesso tasso</strong> y (tasso di reinvestimento yr = y)</li>
+    </ol>
+    <p class="sm" style="margin-top:8px">Se \(y_r > y\) → HPR &gt; y &ensp;|&ensp; Se \(y_r < y\) → HPR &lt; y</p>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore YTM (Bisection)</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale N ($)</label><input type="number" id="ytm-N" value="1000" step="100"></div>
+      <div class="ig"><label>Tasso cedolare annuo ca (%)</label><input type="number" id="ytm-ca" value="10" step="0.1"></div>
+      <div class="ig"><label>Prezzo B ($)</label><input type="number" id="ytm-B" value="1124.75" step="0.01"></div>
+      <div class="ig"><label>Anni alla scadenza</label><input type="number" id="ytm-anni" value="5" step="0.5" min="0.5"></div>
+      <div class="ig"><label>Periodicità p</label>
+        <select id="ytm-p">
+          <option value="2">2 — semestrale (TBond USA)</option>
+          <option value="1">1 — annuale</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="calcYTMcalc()">Calcola YTM</button>
+    <div class="res" id="ytm-res" style="display:none">
+      <div class="rrow"><span class="rl">YTM periodale y</span><span class="rv" id="ytm-yper">—</span></div>
+      <div class="rrow"><span class="rl">YTM annuo nominale = y × p</span><span class="rv" id="ytm-anom">—</span></div>
+      <div class="rrow"><span class="rl">YTM annuo effettivo = (1+y)^p − 1</span><span class="rv big" id="ytm-aeff">—</span></div>
+      <div class="rrow"><span class="rl">YTM approssimativo (formula)</span><span class="rv" id="ytm-approx">—</span></div>
+      <div class="rrow"><span class="rl">Verifica: PV(CF) a y trovato</span><span class="rv" id="ytm-pv">—</span></div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio 1 — Dell Bond 3%</div>
+    <h4>3% Dell Bond, 18 mesi, p=2, prezzo 101.478 per N=100</h4>
+    <p>Un bond Dell con cedola annua <strong>3%</strong>, scadenza <strong>18 mesi</strong> (\(p=2\), quindi 3 cedole semestrali), quotato a <strong>101.478</strong> (per N=100). Trovare lo YTM.</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-ytm1')">Mostra soluzione</button>
+    <div class="sol" id="ex-ytm1">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">Cedola semestrale: \(C = 1.5\), \(n = 3\), prezzo \(B = 101.478\)</div>
+      <div class="step">Risolvere: \(101.478 = \frac{1.5}{(1+y)} + \frac{1.5}{(1+y)^2} + \frac{101.5}{(1+y)^3}\)</div>
+      <div class="step">Bisection → \(y_{sem} =\) <span class="ans">1.00%</span></div>
+      <div class="step">\(y_{annuo\,nom} = 1\% \times 2 =\) <span class="ans">2.00%</span> &ensp;|&ensp; \(y_{annuo\,eff} = (1.01)^2 - 1 =\) <span class="ans">2.01%</span></div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio 2 — Bond 10%, 5 anni</div>
+    <h4>Bond 10%, 5 anni, N=$1'000, B=$1'124.75 — confronto misure</h4>
+    <p>Calcola nominal yield, current yield e YTM per un bond con cedola annua <strong>10%</strong>, scadenza <strong>5 anni</strong>, \(p=2\), \(N = \$1{,}000\), \(B = \$1{,}124.75\).</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-ytm2')">Mostra soluzione</button>
+    <div class="sol" id="ex-ytm2">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">\(n_y = 100/1{,}000 =\) <span class="ans">10.00%</span></div>
+      <div class="step">\(c_y = 100/1{,}124.75 =\) <span class="ans">8.89%</span></div>
+      <div class="step">Cedola sem: \(C=50\), \(n=10\). Bisection: \(1{,}124.75 = 50 \cdot \frac{1-(1+y)^{-10}}{y} + \frac{1{,}000}{(1+y)^{10}}\)</div>
+      <div class="step">\(y_{sem} =\) <span class="ans">3.50%</span> → \(y_{annuo\,nom} =\) <span class="ans">7.00%</span></div>
+      <div class="step acc">Conferma relazione: bond sopra la pari → ny=10% &gt; cy=8.89% &gt; ytm=7.00%</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 09 YTC -->
+<section class="sec" id="ytc">
+  <div class="sec-num">09</div>
+  <h2>Yield to Call (YTC)</h2>
+
+  <p>Un <strong>bond callable</strong> conferisce all'emittente il diritto (non l'obbligo) di rimborsare anticipatamente il titolo al <strong>call price</strong> \(P_c \geq N\) a partire da una certa data (<em>call date</em>). Questo diritto ha valore per l'emittente: viene esercitato tipicamente quando i tassi di mercato scendono e conviene rifinanziare il debito a condizioni migliori.</p>
+
+  <p>La <strong>Yield to Call (YTC)</strong> è il TIR calcolato ipotizzando che il bond venga chiamato alla prima call date, usando il call price come valore finale. Diventa la misura di rendimento più rilevante quando il bond quota <strong>sopra la pari</strong> (tassi in calo) e la probabilità di call è alta.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Yield to Call — formula</div>
+    \[ B = \sum_{k=1}^{n_c} \frac{C}{(1+y_{tc})^k} + \frac{P_c}{(1+y_{tc})^{n_c}} = C \cdot \frac{1-(1+y_{tc})^{-n_c}}{y_{tc}} + \frac{P_c}{(1+y_{tc})^{n_c}} \]
+    <div class="fleg">
+      <span>\(y_{tc}\) = YTC periodale (incognita)</span>
+      <span>\(P_c\) = call price (valore di rimborso anticipato)</span>
+      <span>\(n_c\) = numero di cedole fino alla call date</span>
+      <span>Struttura identica a quella dello YTM, con \(N \to P_c\) e \(n \to n_c\)</span>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore Yield to Call</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale N ($)</label><input type="number" id="ytc-N" value="100" step="10"></div>
+      <div class="ig"><label>Tasso cedolare annuo ca (%)</label><input type="number" id="ytc-ca" value="6" step="0.1"></div>
+      <div class="ig"><label>Prezzo B (% di N)</label><input type="number" id="ytc-Bpct" value="107.32" step="0.01"></div>
+      <div class="ig"><label>Call price Pc (% di N)</label><input type="number" id="ytc-Pc" value="102" step="0.01"></div>
+      <div class="ig"><label>Periodi alla call nc</label><input type="number" id="ytc-nc" value="4" step="1"></div>
+      <div class="ig"><label>Periodicità p</label>
+        <select id="ytc-p">
+          <option value="2">2 — semestrale</option>
+          <option value="1">1 — annuale</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="calcYTCcalc()">Calcola YTC</button>
+    <div class="res" id="ytc-res" style="display:none">
+      <div class="rrow"><span class="rl">Cedola periodale C</span><span class="rv" id="ytc-C">—</span></div>
+      <div class="rrow"><span class="rl">YTC periodale ytc</span><span class="rv" id="ytc-per">—</span></div>
+      <div class="rrow"><span class="rl">YTC annuo nominale = ytc × p</span><span class="rv" id="ytc-anom">—</span></div>
+      <div class="rrow"><span class="rl">YTC annuo effettivo = (1+ytc)^p − 1</span><span class="rv big" id="ytc-aeff">—</span></div>
+      <div class="rrow"><span class="rl">Verifica: PV(CF a call) a ytc trovato</span><span class="rv" id="ytc-pv">—</span></div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio</div>
+    <h4>6% TBond (p=2), B=107.32, call price=102, 4 periodi alla call</h4>
+    <p>Un TBond con cedola annua <strong>6%</strong> (semestrale), prezzo <strong>107.32</strong> (per N=100), call price <strong>102</strong>, con <strong>4 periodi</strong> semestrali alla call date. Calcola la YTC.</p>
+    <button class="btn btn-o mt16" onclick="togSol('ex-ytc')">Mostra soluzione</button>
+    <div class="sol" id="ex-ytc">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">Cedola semestrale: \(C = 3\) per \(N=100\)</div>
+      <div class="step">\(107.32 = \frac{3}{(1+y_{tc})} + \frac{3}{(1+y_{tc})^2} + \frac{3}{(1+y_{tc})^3} + \frac{105}{(1+y_{tc})^4}\)</div>
+      <div class="step">Verifica a \(y_{tc} = 1.5\%\): \(3 \times 3.8543 + 102 \times 0.9422 = 11.563 + 96.104 = 107.67\) (lievemente sopra)</div>
+      <div class="step">Bisection → \(y_{tc,sem} \approx\) <span class="ans">1.54%</span> &ensp;→&ensp; \(y_{tc,annuo\,nom} \approx\) <span class="ans">3.08%</span></div>
+      <div class="step acc">YTC (3.08%) &lt; YTM (~ 4.5%): il mercato incorpora la probabilità di call. L'investitore riceve un rendimento inferiore se l'emittente esercita la call.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ 10 PORTAFOGLIO -->
+<section class="sec" id="portafoglio">
+  <div class="sec-num">10</div>
+  <h2>YTM di un Portafoglio Obbligazionario</h2>
+
+  <p>Lo <strong>YTM di un portafoglio</strong> <em>non è</em> la media ponderata degli YTM dei singoli bond che lo compongono. Il metodo corretto prevede di:</p>
+  <ol>
+    <li>Calcolare il prezzo di mercato di ciascun bond al proprio YTM</li>
+    <li><strong>Aggregare tutti i flussi di cassa</strong> periodo per periodo (sommando i CF di tutti i bond con lo stesso timing)</li>
+    <li>Trovare il TIR dell'insieme aggregato di CF rispetto alla somma dei prezzi</li>
+  </ol>
+
+  <div class="sub-h">
+    <h3>Confronto misure di rendimento medio</h3>
+    <p>Il mercato a volte usa due medie ponderate approssimate, entrambe diverse dal YTM di portafoglio:</p>
+    <ul>
+      <li><strong>Rendimento medio per nominale (\(r_N\))</strong>: media degli YTM ponderata per i nominali</li>
+      <li><strong>Rendimento medio per prezzo (\(r_B\))</strong>: media degli YTM ponderata per i valori di mercato</li>
+      <li><strong>YTM del portafoglio</strong>: TIR sui CF aggregati (misura corretta)</li>
+    </ul>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore YTM Portafoglio — fino a 5 bond</h4>
+    <p class="sm mut" style="margin-bottom:14px">Inserisci i parametri di ciascun bond. Il prezzo viene calcolato automaticamente dallo YTM. I CF vengono aggregati e si trova il TIR del portafoglio.</p>
+    <div id="bond-list"></div>
+    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+      <button class="btn btn-o btn-sm" onclick="addBondRow()">+ Aggiungi bond</button>
+      <button class="btn btn-sm" onclick="calcPortYTM()">Calcola YTM Portafoglio</button>
+      <button class="btn btn-o btn-sm" onclick="loadExamplePortfolio()">Carica esempio</button>
+    </div>
+    <div id="port-res" style="display:none">
+      <div style="overflow-x:auto;margin-bottom:14px">
+        <table class="cft" id="port-bonds-table"></table>
+      </div>
+      <div class="res">
+        <div class="rrow"><span class="rl">Valore totale portafoglio (somma prezzi)</span><span class="rv" id="port-totval">—</span></div>
+        <div class="rrow"><span class="rl">Rendimento medio ponderato per nominale r_N</span><span class="rv" id="port-rN">—</span></div>
+        <div class="rrow"><span class="rl">Rendimento medio ponderato per prezzo r_B</span><span class="rv" id="port-rB">—</span></div>
+        <div class="rrow"><span class="rl">YTM del portafoglio (TIR su CF aggregati)</span><span class="rv big" id="port-ytm">—</span></div>
+      </div>
+      <div style="overflow-x:auto;margin-top:14px">
+        <table class="cft" id="port-cf-table"></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio — Portafoglio 3 bond USA</div>
+    <h4>Portafoglio bond USA (p=2)</h4>
+    <p>Tre TBond semestrali con i seguenti parametri:</p>
+    <table class="rtab" style="margin:12px 0">
+      <tr><th>Bond</th><th>Cedola ann. ca</th><th>Scadenza</th><th>YTM annuo</th><th>Nominale N</th></tr>
+      <tr><td>A</td><td>7%</td><td>5 anni</td><td>9%</td><td>$10'000'000</td></tr>
+      <tr><td>B</td><td>10.5%</td><td>7 anni</td><td>10.5%</td><td>$20'000'000</td></tr>
+      <tr><td>C</td><td>6%</td><td>3 anni</td><td>8.5%</td><td>$30'000'000</td></tr>
+    </table>
+    <button class="btn btn-o mt16" onclick="togSol('ex-port')">Mostra soluzione</button>
+    <div class="sol" id="ex-port">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">Bond A (7%, 9%, 10 sem, N=10M): B=9,214,882 &ensp;|&ensp; Quotazione = 92.149</div>
+      <div class="step">Bond B (10.5%, 10.5%, 14 sem, N=20M): B=20,000,000 (alla pari, y=c) &ensp;|&ensp; Quotazione = 100.000</div>
+      <div class="step">Bond C (6%, 8.5%, 6 sem, N=30M): B=27,966,839 &ensp;|&ensp; Quotazione = 93.223</div>
+      <div class="step">Valore totale portafoglio: \(\approx \$57{,}181{,}721\)</div>
+      <div class="step">\(r_N = (9\% \times 10M + 10.5\% \times 20M + 8.5\% \times 30M) / 60M =\) <span class="ans">9.25%</span></div>
+      <div class="step">\(r_B \approx\) <span class="ans">9.28%</span> (media ponderata per prezzi di mercato)</div>
+      <div class="step">YTM portafoglio (TIR su CF aggregati) = <span class="ans">9.54%</span></div>
+      <div class="step acc">Le tre misure divergono: r_N=9.25%, r_B=9.28%, YTM_portafoglio=9.54%. Solo il TIR è la misura corretta del rendimento del portafoglio.</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>SUPSI · DEASS · Fixed Income Analysis · Fabiano Cavadini · 04.02.2025</span>
+  <span>Lezione 03 — Il Rendimento</span>
+</footer>
+
+</div><!-- /content -->
+
+<script>
+// ─── utils ───────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmt = (v, d=2) => v.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct = (v, d=4) => fmt(v*100,d)+'%';
+const show = id => $(id).style.display='block';
+const hide = id => $(id).style.display='none';
+
+function togSol(id){
+  const el=$(id);
+  const on=el.classList.toggle('on');
+  el.previousElementSibling.textContent=on?'Nascondi soluzione':'Mostra soluzione';
+}
+
+// Bond price (coupon bond)
+function cbPrice(c, y, N, n){
+  if(Math.abs(y)<1e-12) return N*(1+n*c);
+  return c*N*(1-Math.pow(1+y,-n))/y + N*Math.pow(1+y,-n);
+}
+
+// Bisection to find periodic YTM given C (periodic coupon), N, B, n
+function findYTM(C, N, B, n){
+  let lo=1e-8, hi=10, mid, pv;
+  for(let i=0;i<120;i++){
+    mid=(lo+hi)/2;
+    // PV at mid
+    if(Math.abs(mid)<1e-12) pv=C*n+N;
+    else pv=C*(1-Math.pow(1+mid,-n))/mid + N*Math.pow(1+mid,-n);
+    if(pv>B) lo=mid; else hi=mid;
+    if(hi-lo<1e-10) break;
+  }
+  return mid;
+}
+
+// ─── HPR General ─────────────────────────────────────────
+function calcHPRgen(){
+  const B0=+$('hpr-B0').value, BT=+$('hpr-BT').value, FVC=+$('hpr-FVC').value;
+  const VT=BT+FVC, prof=VT-B0, HPR=prof/B0;
+  $('hpr-VT').textContent='$'+fmt(VT);
+  $('hpr-prof').textContent=(prof>=0?'+':'')+' $'+fmt(prof);
+  $('hpr-val').textContent=pct(HPR,4);
+  show('hpr-gen-res');
+}
+
+// ─── T-Bill HPR ──────────────────────────────────────────
+function calcTBillHPR(){
+  const N=+$('tbhpr-N').value, DY=+$('tbhpr-DY').value/100, g=+$('tbhpr-g').value;
+  const S=N*DY*g/360, B=N-S;
+  const HPR=S/B;
+  const HPRa=Math.pow(1+HPR, 365/g)-1;
+  $('tbhpr-S').textContent='$'+fmt(S);
+  $('tbhpr-B').textContent='$'+fmt(B);
+  $('tbhpr-HPR').textContent=pct(HPR,4);
+  $('tbhpr-HPRa').textContent=pct(HPRa,4);
+  show('tbhpr-res');
+}
+
+// ─── Coupon Bond HPR ─────────────────────────────────────
+function calcCBHPR(){
+  const N=+$('cbhpr-N').value, ca=+$('cbhpr-ca').value/100;
+  const p=+$('cbhpr-p').value;
+  const B0pct=+$('cbhpr-B0pct').value, BTpct=+$('cbhpr-BTpct').value;
+  const n=+$('cbhpr-n').value, yr=+$('cbhpr-yr').value/100;
+  const C=(ca/p)*N;
+  const B0=B0pct/100*N, BT=BTpct/100*N;
+  let FVC;
+  if(Math.abs(yr)<1e-12) FVC=C*n;
+  else FVC=C*(Math.pow(1+yr,n)-1)/yr;
+  const VT=BT+FVC, prof=VT-B0, HPR=prof/B0;
+  const anni=n/p;
+  const HPRa=Math.pow(1+HPR,1/anni)-1;
+  $('cbhpr-C').textContent='$'+fmt(C);
+  $('cbhpr-B0abs').textContent='$'+fmt(B0);
+  $('cbhpr-BTabs').textContent='$'+fmt(BT);
+  $('cbhpr-FVC').textContent='$'+fmt(FVC);
+  $('cbhpr-VT').textContent='$'+fmt(VT);
+  $('cbhpr-prof').textContent='$'+fmt(prof);
+  $('cbhpr-HPR').textContent=pct(HPR,4);
+  $('cbhpr-anni').textContent=fmt(anni,4)+' anni';
+  $('cbhpr-HPRa').textContent=pct(HPRa,4);
+  show('cbhpr-res');
+}
+
+// ─── HPR Annualisation ───────────────────────────────────
+function calcAnn(){
+  const HPR=+$('ann-HPR').value/100, t=+$('ann-t').value;
+  const HPRa=Math.pow(1+HPR,1/t)-1;
+  $('ann-hpr-out').textContent=pct(HPR,4);
+  $('ann-t-out').textContent=fmt(t,4)+' anni';
+  $('ann-hpra-out').textContent=pct(HPRa,4);
+  show('ann-res');
+}
+
+// ─── HPR Components ──────────────────────────────────────
+function calcHPRComponents(cAnnual, y0Annual, y1Annual, yrAnnual, p, totalYears, holdingYears){
+  const cP=cAnnual/p, y0=y0Annual/p, y1=y1Annual/p, yr=yrAnnual/p;
+  const nTotal=Math.round(totalYears*p);
+  // B0: price at y0 (initial), totalYears to maturity
+  const B0=cbPrice(cP, y0, 1, nTotal); // per unit nominal
+  // nH = number of coupon periods in holding
+  const nH=Math.round(holdingYears*p);
+  // BT: price at y1, remaining periods = nTotal-nH
+  const nRem=nTotal-nH;
+  let BT;
+  if(nRem<=0) BT=1; // at maturity
+  else BT=cbPrice(cP, y1, 1, nRem);
+  // FV of coupons
+  let couponFV;
+  if(nH===0){ couponFV=0; }
+  else if(Math.abs(yr)<1e-12){ couponFV=cP*nH; }
+  else{ couponFV=cP*(Math.pow(1+yr,nH)-1)/yr; }
+  const coupons=cP*nH;
+  const reinvInterest=couponFV-coupons;
+  const VT=BT+couponFV;
+  const profit=VT-B0;
+  const HPR_total=profit/B0;
+  const HPRa=holdingYears>0?Math.pow(1+HPR_total,1/holdingYears)-1:0;
+  return{B0,BT,coupons,reinvInterest,couponFV,VT,profit,HPR_total,HPRa};
+}
+
+// ─── Components Chart ────────────────────────────────────
+let compChart=null;
+const compHPs=[1,2,3,5,10,15,18,20];
+
+function getCompParams(){
+  return{
+    c:+$('comp-c').value/100,
+    y0:+$('comp-y0').value/100,
+    y1:+$('comp-y1').value/100,
+    yr:+$('comp-yr').value/100,
+    p:+$('comp-p').value,
+    tot:+$('comp-tot').value
+  };
+}
+
+function updCompChart(){
+  if(!compChart) return;
+  const{c,y0,y1,yr,p,tot}=getCompParams();
+  const hps=compHPs.filter(h=>h<tot);
+  if(tot>0 && !hps.includes(tot)) hps.push(tot);
+  const labels=hps.map(h=>h+'Y');
+  const couponFVs=[], prices=[], B0ref=[];
+  let B0ref_val=null;
+  hps.forEach(h=>{
+    const r=calcHPRComponents(c,y0,y1,yr,p,tot,h);
+    if(B0ref_val===null) B0ref_val=r.B0;
+    couponFVs.push(parseFloat((r.couponFV).toFixed(6)));
+    prices.push(parseFloat((r.BT).toFixed(6)));
+    B0ref.push(parseFloat(B0ref_val.toFixed(6)));
+  });
+  compChart.data.labels=labels;
+  compChart.data.datasets[0].data=couponFVs;
+  compChart.data.datasets[1].data=prices;
+  compChart.data.datasets[2].data=B0ref;
+  compChart.update();
+  // update table
+  let rows='';
+  hps.forEach(h=>{
+    const r=calcHPRComponents(c,y0,y1,yr,p,tot,h);
+    const hpraStr=r.HPRa>=0?'<span class="grn">'+pct(r.HPRa,2)+'</span>':'<span class="warn">'+pct(r.HPRa,2)+'</span>';
+    rows+=`<tr>
+      <td style="text-align:left;color:var(--txt)">${h} anni</td>
+      <td>${fmt(r.B0*1000,2)}</td>
+      <td>${fmt(r.BT*1000,2)}</td>
+      <td>${fmt(r.couponFV*1000,2)}</td>
+      <td>${fmt(r.VT*1000,2)}</td>
+      <td style="color:${r.profit>=0?'var(--grn)':'var(--acc)'}">${r.profit>=0?'+':''}${fmt(r.profit*1000,2)}</td>
+      <td>${hpraStr}</td>
+    </tr>`;
+  });
+  $('comp-tbody').innerHTML=rows;
+}
+
+function initCompChart(){
+  const{c,y0,y1,yr,p,tot}=getCompParams();
+  const hps=compHPs.filter(h=>h<tot);
+  if(tot>0 && !hps.includes(tot)) hps.push(tot);
+  const labels=hps.map(h=>h+'Y');
+  const couponFVs=[], prices=[], B0ref=[];
+  let B0ref_val=null;
+  hps.forEach(h=>{
+    const r=calcHPRComponents(c,y0,y1,yr,p,tot,h);
+    if(B0ref_val===null) B0ref_val=r.B0;
+    couponFVs.push(parseFloat((r.couponFV).toFixed(6)));
+    prices.push(parseFloat((r.BT).toFixed(6)));
+    B0ref.push(parseFloat(B0ref_val.toFixed(6)));
+  });
+  compChart=new Chart($('compChart'),{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Cedole + Interessi reinvestimento',data:couponFVs,backgroundColor:'rgba(111,207,151,0.75)',stack:'s'},
+        {label:'Prezzo di vendita B_T',data:prices,backgroundColor:'rgba(86,180,214,0.75)',stack:'s'},
+        {label:'Prezzo acquisto B₀',data:B0ref,type:'line',borderColor:'#d67556',borderWidth:2,pointRadius:4,pointBackgroundColor:'#d67556',fill:false,tension:0,order:-1}
+      ]
+    },
+    options:{
+      responsive:true,
+      interaction:{intersect:false,mode:'index'},
+      plugins:{
+        legend:{labels:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}},
+        tooltip:{
+          backgroundColor:'#272726',borderColor:'#3a3a39',borderWidth:1,
+          titleColor:'#d67556',bodyColor:'#f0f0ef',
+          titleFont:{family:'Oxygen Mono',size:11},bodyFont:{family:'Oxygen Mono',size:11},
+          callbacks:{
+            label:i=>{
+              if(i.dataset.label.includes('acquisto')) return ' B₀: '+parseFloat(i.raw*1000).toFixed(2);
+              if(i.dataset.label.includes('Cedole')) return ' Cedole+Reinv: '+parseFloat(i.raw*1000).toFixed(2);
+              return ' Prezzo vendita: '+parseFloat(i.raw*1000).toFixed(2);
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono',size:10}},
+          grid:{color:'#2a2a29'},
+          title:{display:true,text:'Orizzonte di detenzione',color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}},
+        y:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono',size:10},callback:v=>v.toFixed(2)},
+          grid:{color:'#2a2a29'},
+          title:{display:true,text:'Valore (per unità di nominale)',color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}}
+      }
+    }
+  });
+  updCompChart();
+}
+
+// ─── Nominal/Current Yield ───────────────────────────────
+function calcNY(){
+  const ca=+$('ny-ca').value, N=+$('ny-N').value, B=+$('ny-B').value;
+  const ny=ca/N, cy=ca/B;
+  $('ny-out').textContent=pct(ny,4);
+  $('cy-out').textContent=pct(cy,4);
+  const diff=B-N;
+  let pariTxt;
+  if(Math.abs(diff)<0.01) pariTxt='Alla pari — ny = cy = ytm';
+  else if(diff>0) pariTxt='Sopra la pari — ny > cy > ytm';
+  else pariTxt='Sotto la pari — ny < cy < ytm';
+  $('ny-pari').textContent=pariTxt;
+  show('ny-res');
+}
+
+// ─── YTM Calculator ──────────────────────────────────────
+function calcYTMcalc(){
+  const N=+$('ytm-N').value, ca=+$('ytm-ca').value/100;
+  const B=+$('ytm-B').value, anni=+$('ytm-anni').value, p=+$('ytm-p').value;
+  const C=(ca/p)*N, n=Math.round(anni*p);
+  const y=findYTM(C,N,B,n);
+  const yNom=y*p, yEff=Math.pow(1+y,p)-1;
+  // approx formula (periodic: C/N = c, n periodic)
+  const yApprox=(C+(N-B)/n)/((N+B)/2);
+  const pvCheck=cbPrice(C/N,y,N,n);
+  $('ytm-yper').textContent=pct(y,4);
+  $('ytm-anom').textContent=pct(yNom,4);
+  $('ytm-aeff').textContent=pct(yEff,4);
+  $('ytm-approx').textContent=pct(yApprox,4)+' (approx)';
+  $('ytm-pv').textContent='$'+fmt(pvCheck)+' (target: $'+fmt(B)+')';
+  show('ytm-res');
+}
+
+// ─── YTC Calculator ──────────────────────────────────────
+function calcYTCcalc(){
+  const N=+$('ytc-N').value, ca=+$('ytc-ca').value/100;
+  const Bpct=+$('ytc-Bpct').value, Pc_pct=+$('ytc-Pc').value;
+  const nc=+$('ytc-nc').value, p=+$('ytc-p').value;
+  const C=(ca/p)*N, B=(Bpct/100)*N, Pc=(Pc_pct/100)*N;
+  // find ytc: B = C*annuity(ytc,nc) + Pc*(1+ytc)^-nc
+  const ytc=findYTM(C,Pc,B,nc);
+  const ytcNom=ytc*p, ytcEff=Math.pow(1+ytc,p)-1;
+  const pvCheck=cbPrice(C/Pc,ytc,Pc,nc);
+  $('ytc-C').textContent='$'+fmt(C);
+  $('ytc-per').textContent=pct(ytc,4);
+  $('ytc-anom').textContent=pct(ytcNom,4);
+  $('ytc-aeff').textContent=pct(ytcEff,4);
+  $('ytc-pv').textContent='$'+fmt(pvCheck)+' (target: $'+fmt(B)+')';
+  show('ytc-res');
+}
+
+// ─── Portfolio YTM ───────────────────────────────────────
+let bondRows=[];
+let bondIdCounter=0;
+
+function addBondRow(ca,anni,N,p,ytm){
+  if(bondRows.length>=5){ alert('Massimo 5 bond'); return; }
+  const id=bondIdCounter++;
+  bondRows.push(id);
+  const div=document.createElement('div');
+  div.id='bond-row-'+id;
+  div.className='bond-row';
+  div.innerHTML=`
+    <div class="ig"><label>Cedola ann. ca (%)</label><input type="number" id="br-ca-${id}" value="${ca||7}" step="0.1" min="0"></div>
+    <div class="ig"><label>Anni scadenza</label><input type="number" id="br-anni-${id}" value="${anni||5}" step="0.5" min="0.5"></div>
+    <div class="ig"><label>Nominale N ($)</label><input type="number" id="br-N-${id}" value="${N||1000000}" step="100000"></div>
+    <div class="ig"><label>Periodicità p</label>
+      <select id="br-p-${id}">
+        <option value="2"${(p||2)==2?' selected':''}>2 — sem.</option>
+        <option value="1"${(p||2)==1?' selected':''}>1 — ann.</option>
+      </select>
+    </div>
+    <div class="ig"><label>YTM annuo nom (%)</label><input type="number" id="br-ytm-${id}" value="${ytm||9}" step="0.01" min="0"></div>
+    <button class="bond-del" onclick="removeBondRow(${id})">✕</button>
+  `;
+  $('bond-list').appendChild(div);
+}
+
+function removeBondRow(id){
+  const idx=bondRows.indexOf(id);
+  if(idx>=0) bondRows.splice(idx,1);
+  const el=$('bond-row-'+id);
+  if(el) el.remove();
+}
+
+function loadExamplePortfolio(){
+  // Clear existing
+  bondRows.slice().forEach(id=>removeBondRow(id));
+  $('bond-list').innerHTML='';
+  bondRows=[];
+  // 3 bonds: A(7%,5Y,10M,p=2,9%), B(10.5%,7Y,20M,p=2,10.5%), C(6%,3Y,30M,p=2,8.5%)
+  addBondRow(7, 5, 10000000, 2, 9);
+  addBondRow(10.5, 7, 20000000, 2, 10.5);
+  addBondRow(6, 3, 30000000, 2, 8.5);
+}
+
+function calcPortYTM(){
+  if(bondRows.length===0){ alert('Aggiungi almeno un bond'); return; }
+  // Collect bond data
+  const bonds=bondRows.map(id=>{
+    const ca=+$('br-ca-'+id).value/100;
+    const anni=+$('br-anni-'+id).value;
+    const N=+$('br-N-'+id).value;
+    const p=+$('br-p-'+id).value;
+    const ytm=+$('br-ytm-'+id).value/100;
+    const c=ca/p, y=ytm/p;
+    const n=Math.round(anni*p);
+    const B=cbPrice(c,y,N,n);
+    return{ca,anni,N,p,ytm,c,y,n,B};
+  });
+  // Total portfolio value
+  const totalB=bonds.reduce((s,b)=>s+b.B,0);
+  const totalN=bonds.reduce((s,b)=>s+b.N,0);
+  // Weighted avg YTM by nominal
+  const rN=bonds.reduce((s,b)=>s+b.ytm*b.N,0)/totalN;
+  // Weighted avg YTM by price
+  const rB=bonds.reduce((s,b)=>s+b.ytm*b.B,0)/totalB;
+  // Max periods
+  const maxN=Math.max(...bonds.map(b=>b.n));
+  // Build aggregated CF array
+  const cfs=new Array(maxN+1).fill(0);
+  bonds.forEach(b=>{
+    for(let k=1;k<=b.n;k++){
+      const CF=k<b.n?(b.c*b.N):(b.c*b.N+b.N);
+      cfs[k]+=CF;
+    }
+  });
+  // Find IRR of aggregated CFs vs total portfolio value
+  // IRR: totalB = sum k=1..maxN of cfs[k]/(1+r)^k
+  // Use bisection
+  let lo=1e-8, hi=10;
+  for(let i=0;i<150;i++){
+    const mid=(lo+hi)/2;
+    let pv=0;
+    for(let k=1;k<=maxN;k++) pv+=cfs[k]/Math.pow(1+mid,k);
+    if(pv>totalB) lo=mid; else hi=mid;
+    if(hi-lo<1e-11) break;
+  }
+  const ytmPort=(lo+hi)/2;
+  // Determine common p (use first bond's p if all equal, else 1)
+  const allP=bonds.map(b=>b.p);
+  const commonP=allP.every(v=>v===allP[0])?allPs[0]:1; // safe fallback handled below
+  // Actually, portfolio YTM is already on the period basis matching the CF periodicity
+  // The period is 1/p years. YTM annual nominal = ytmPort * p (if single p).
+  // Since we mixed it doesn't matter — just show as "per period" and annualised
+  // Determine period: all bonds same p? If so, annualise by *p. Otherwise label as "per period"
+  const sameP=allP.every(v=>v===allP[0]);
+  const portP=sameP?allP[0]:1;
+  const ytmPortNom=ytmPort*portP;
+  // Build bond table
+  let bRows='<thead><tr><th style="text-align:left">#</th><th>Cedola</th><th>Anni</th><th>Nominale</th><th>p</th><th>YTM</th><th>Prezzo</th><th>Quotazione</th></tr></thead><tbody>';
+  bonds.forEach((b,i)=>{
+    bRows+=`<tr>
+      <td style="text-align:left;color:var(--mut)">${String.fromCharCode(65+i)}</td>
+      <td>${fmt(b.ca*100,2)}%</td>
+      <td>${b.anni}</td>
+      <td>${fmt(b.N,0)}</td>
+      <td>${b.p}</td>
+      <td>${fmt(b.ytm*100,2)}%</td>
+      <td>${fmt(b.B,2)}</td>
+      <td>${fmt(b.B/b.N*100,4)}</td>
+    </tr>`;
+  });
+  bRows+='</tbody>';
+  $('port-bonds-table').innerHTML=bRows;
+  // Build CF aggregated table (show first 20 periods max)
+  const showN=Math.min(maxN,20);
+  let cfRows='<thead><tr><th>Periodo k</th><th>CF Aggregato</th><th>PV (a YTM_port)</th></tr></thead><tbody>';
+  for(let k=1;k<=showN;k++){
+    if(cfs[k]===0) continue;
+    const pv=cfs[k]/Math.pow(1+ytmPort,k);
+    cfRows+=`<tr><td>${k}</td><td>${fmt(cfs[k],0)}</td><td>${fmt(pv,0)}</td></tr>`;
+  }
+  if(maxN>showN) cfRows+=`<tr><td colspan="3" style="color:var(--mut);text-align:center">... (${maxN-showN} periodi aggiuntivi omessi) ...</td></tr>`;
+  cfRows+='</tbody>';
+  $('port-cf-table').innerHTML=cfRows;
+  $('port-totval').textContent='$'+fmt(totalB,2);
+  $('port-rN').textContent=pct(rN,4)+' (annuo nominale)';
+  $('port-rB').textContent=pct(rB,4)+' (annuo nominale)';
+  $('port-ytm').textContent=pct(ytmPortNom,4)+' (annuo nominale, p='+portP+')';
+  show('port-res');
+}
+
+// ─── Active Nav ──────────────────────────────────────────
+function initNav(){
+  const secs=document.querySelectorAll('.sec');
+  const links=document.querySelectorAll('.nav a');
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        links.forEach(a=>a.classList.remove('on'));
+        const lnk=document.querySelector('.nav a[href="#'+e.target.id+'"]');
+        if(lnk) lnk.classList.add('on');
+      }
+    });
+  },{threshold:0.25});
+  secs.forEach(s=>obs.observe(s));
+}
+
+// ─── Init ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  // Pre-populate portfolio with example
+  loadExamplePortfolio();
+  setTimeout(()=>{ initCompChart(); },150);
+  initNav();
+});
+</script>
+</body>
+</html>

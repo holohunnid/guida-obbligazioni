@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le teorie della curva dei tassi spot — Fixed Income Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1f1f1e;--bg1:#272726;--bg2:#2f2f2e;--bg3:#383837;
+  --acc:#d67556;--acc-dim:rgba(214,117,86,.13);
+  --txt:#f0f0ef;--mut:#8a8a89;--bdr:#3a3a39;
+  --grn:#6fcf97;--blu:#56b4d6;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Oxygen Mono',monospace;background:var(--bg);color:var(--txt);line-height:1.8;font-size:13.5px;display:flex;min-height:100vh}
+.sidebar{width:220px;min-width:220px;background:var(--bg1);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sb-brand{padding:24px 20px 20px;border-bottom:1px solid var(--bdr)}
+.sb-course{font-size:9px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sb-title{font-size:12px;color:var(--txt);line-height:1.5}
+.sb-nav{padding:16px 0;flex:1}
+.sb-section{font-size:9px;color:var(--mut);letter-spacing:.18em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;margin-top:16px}
+.sb-item{display:flex;align-items:flex-start;gap:10px;padding:10px 20px;text-decoration:none;transition:background .15s;cursor:default;position:relative}
+.sb-item.link{cursor:pointer}
+.sb-item.link:hover{background:var(--bg2)}
+.sb-item.active{background:var(--acc-dim)}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--acc)}
+.sb-num{font-size:10px;color:var(--mut);min-width:18px;padding-top:1px}
+.sb-item.active .sb-num{color:var(--acc)}
+.sb-info{flex:1}
+.sb-name{font-size:11px;color:var(--mut);line-height:1.4}
+.sb-item.active .sb-name{color:var(--txt)}
+.sb-item.locked .sb-name,.sb-item.skipped .sb-name{color:var(--bg3)}
+.sb-tag{font-size:9px;margin-top:3px;letter-spacing:.08em}
+.sb-tag.soon,.sb-tag.skip{color:var(--bg3)}
+.sb-tag.curr{color:var(--acc)}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--bdr);font-size:10px;color:var(--bg3)}
+.content{flex:1;min-width:0;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+.hdr{border-bottom:1px solid var(--bdr);padding:48px 0 36px}
+.hdr .in{max-width:860px;margin:0 auto;padding:0 40px}
+.hdr .tag{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px}
+.hdr h1{font-size:24px;font-weight:400;line-height:1.3}
+.hdr .sub{color:var(--mut);font-size:11px;margin-top:6px}
+.nav{position:sticky;top:0;z-index:100;background:rgba(31,31,30,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr);overflow-x:auto}
+.nav .in{max-width:860px;margin:0 auto;padding:0 28px;display:flex}
+.nav a{display:block;padding:13px 12px;font-size:10px;color:var(--mut);text-decoration:none;letter-spacing:.08em;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+.nav a:hover,.nav a.on{color:var(--acc);border-bottom-color:var(--acc)}
+main{max-width:860px;margin:0 auto;padding:0 40px 80px;flex:1}
+.sec{padding:60px 0 48px;border-bottom:1px solid var(--bdr)}
+.sec:last-child{border-bottom:none}
+.sec-num{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sec h2{font-size:19px;font-weight:400;margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.sub-h{margin-top:28px}
+.sub-h h3{font-size:10px;color:var(--acc);font-weight:400;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+p{margin-bottom:10px}
+ul,ol{padding-left:18px;margin-bottom:10px}
+li{margin-bottom:3px}
+strong{color:var(--acc);font-weight:400}
+em{color:var(--blu);font-style:normal}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}
+@media(max-width:760px){.grid3{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+.card{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:18px 20px}
+.card h4{font-size:10px;color:var(--acc);letter-spacing:.1em;text-transform:uppercase;font-weight:400;margin-bottom:10px}
+.fmla{background:var(--bg1);border-left:3px solid var(--acc);border-radius:0 4px 4px 0;padding:18px 22px;margin:18px 0;overflow-x:auto}
+.fmla .fmla-ttl{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px}
+.fmla .katex-display{margin:10px 0}
+.fleg{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);font-size:11.5px;color:var(--mut);line-height:2}
+.fleg span{margin-right:14px}
+.calc{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.calc h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:18px}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-bottom:18px}
+.ig{display:flex;flex-direction:column;gap:5px}
+.ig label{font-size:11px;color:var(--mut)}
+.ig input,.ig select{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:8px 10px;color:var(--txt);font-family:'Oxygen Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;width:100%}
+.ig input:focus,.ig select:focus{border-color:var(--acc)}
+.ig select option{background:var(--bg2)}
+.btn{background:var(--acc);color:var(--bg);border:none;border-radius:3px;padding:9px 22px;font-family:'Oxygen Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:.05em;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-sm{padding:5px 14px;font-size:11px}
+.res{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:14px 18px;margin-top:14px}
+.rrow{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--bdr);gap:20px}
+.rrow:last-child{border-bottom:none}
+.rl{color:var(--mut);font-size:11.5px}
+.rv{color:var(--txt);font-size:14px;text-align:right}
+.rv.big{color:var(--acc);font-size:18px}
+.cft{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
+.cft th{text-align:right;padding:7px 12px;color:var(--mut);border-bottom:1px solid var(--bdr);font-weight:400;font-size:10.5px;letter-spacing:.05em}
+.cft th:first-child{text-align:center}
+.cft td{text-align:right;padding:6px 12px;border-bottom:1px solid var(--bdr)}
+.cft td:first-child{text-align:center;color:var(--mut)}
+.cft tr.tot td{color:var(--acc);font-size:13.5px;border-top:2px solid var(--acc);border-bottom:none}
+.rtab{width:100%;border-collapse:collapse;margin:14px 0;font-size:12.5px}
+.rtab th{padding:9px 13px;background:var(--bg2);border:1px solid var(--bdr);color:var(--mut);font-weight:400;font-size:10.5px;letter-spacing:.07em;text-align:left}
+.rtab td{padding:9px 13px;border:1px solid var(--bdr)}
+.rtab tr:nth-child(even) td{background:var(--bg1)}
+.chw{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.chw canvas{max-height:340px}
+.ch-ttl{font-size:10px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+.sg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.sg label{font-size:11px;color:var(--mut)}
+.srow{display:flex;align-items:center;gap:12px}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--bdr);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;background:var(--acc);border-radius:50%;cursor:pointer}
+.sv{min-width:62px;text-align:right;color:var(--acc);font-size:12.5px}
+.ex{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}
+.ex-lbl{font-size:10px;color:var(--blu);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.ex h4{font-size:13px;font-weight:400;margin-bottom:10px}
+.sol{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)}
+.sol.on{display:block}
+.sol-lbl{font-size:10px;color:var(--grn);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}
+.step{margin-bottom:7px;padding:6px 12px;border-left:2px solid var(--grn);font-size:12.5px}
+.step .ans{color:var(--grn);font-size:14px}
+.cbox{border:1px solid var(--acc);border-radius:4px;padding:14px 18px;margin:18px 0;background:var(--acc-dim)}
+.cbox h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:8px}
+.meter{height:8px;background:var(--bg2);border:1px solid var(--bdr);border-radius:999px;overflow:hidden;margin:8px 0 2px}
+.meter span{display:block;height:100%;background:linear-gradient(90deg,var(--blu),var(--acc));width:50%;transition:width .2s}
+.scenario{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
+.scenario button{background:var(--bg2);color:var(--mut);border:1px solid var(--bdr);border-radius:3px;padding:6px 10px;font-family:'Oxygen Mono',monospace;font-size:11px;cursor:pointer}
+.scenario button.on{color:var(--acc);border-color:var(--acc);background:var(--acc-dim)}
+.ok{color:var(--grn)}.warn{color:var(--acc)}.info{color:var(--blu)}
+.mt16{margin-top:16px}.mt24{margin-top:24px}
+.sm{font-size:12px}.mut{color:var(--mut)}
+.acc{color:var(--acc)}.grn{color:var(--grn)}.blu{color:var(--blu)}
+.info-box{border-left:2px solid var(--blu);padding:8px 14px;margin:12px 0;font-size:12.5px;color:var(--mut)}
+footer{max-width:860px;margin:0 auto;padding:22px 40px;border-top:1px solid var(--bdr);font-size:11px;color:var(--mut);display:flex;justify-content:space-between;width:100%;gap:20px}
+@media(max-width:860px){body{display:block}.sidebar{position:relative;width:100%;height:auto}.content{display:block}footer{display:block}.hdr .in,main{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-course">Fixed Income Analysis</div>
+    <div class="sb-title">SUPSI — DEASS<br>Fabiano Cavadini</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Lezioni</div>
+
+    <div class="sb-item skipped">
+      <span class="sb-num">01</span>
+      <div class="sb-info">
+        <div class="sb-name">Introduzione ai mercati obbligazionari</div>
+        <div class="sb-tag skip">— saltata —</div>
+      </div>
+    </div>
+
+    <a class="sb-item link" href="bond-pricing.html">
+      <span class="sb-num">02</span>
+      <div class="sb-info"><div class="sb-name">Il Pricing delle Obbligazioni</div></div>
+    </a>
+
+    <a class="sb-item link" href="lezione3.html">
+      <span class="sb-num">03</span>
+      <div class="sb-info"><div class="sb-name">Il Rendimento dell'Investimento</div></div>
+    </a>
+
+    <a class="sb-item link" href="lezione4.html">
+      <span class="sb-num">04</span>
+      <div class="sb-info"><div class="sb-name">La Struttura a Termine</div></div>
+    </a>
+
+    <div class="sb-item active">
+      <span class="sb-num">05</span>
+      <div class="sb-info">
+        <div class="sb-name">Teorie della Curva Spot</div>
+        <div class="sb-tag curr">in corso</div>
+      </div>
+    </div>
+
+    <a class="sb-item link" href="lezione6.html">
+      <span class="sb-num">06</span>
+      <div class="sb-info">
+        <div class="sb-name">Il Rischio di Tasso</div>
+      </div>
+    </a>
+  </nav>
+  <div class="sb-footer">Fixed Income Analysis · SUPSI</div>
+</aside>
+
+<div class="content">
+
+<header class="hdr">
+  <div class="in">
+    <div class="tag">Lezione 05 · Fixed Income Analysis</div>
+    <h1>Le teorie della curva<br>dei tassi spot</h1>
+    <div class="sub">Forward rates · Aspettative · Premio liquidita · HPR · Segmentazione · SUPSI DEASS</div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="in">
+    <a href="#relazione">Forward</a>
+    <a href="#hpr">HPR</a>
+    <a href="#teorie">Teorie</a>
+    <a href="#liquidita">Liquidita</a>
+    <a href="#segmenti">Segmenti</a>
+    <a href="#interpretazione">Interpretazione</a>
+    <a href="#macro">Macro</a>
+  </div>
+</nav>
+
+<main>
+
+<section class="sec" id="relazione">
+  <div class="sec-num">01 — Relazione di base</div>
+  <h2>Forward rate e tasso futuro atteso</h2>
+
+  <p>Nella lezione precedente abbiamo ricavato i <strong>tassi forward</strong> dalla curva spot. Ora il punto diventa interpretativo: un forward e sempre una previsione del tasso a breve futuro?</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Relazione centrale</div>
+    \[f_{i-1;i} = E(y_{i-1;i}) + premio_i\]
+    <div class="fleg">
+      <span>\(f_{i-1;i}\) = tasso forward implicito</span>
+      <span>\(E(y_{i-1;i})\) = tasso spot futuro atteso</span>
+      <span>\(premio_i\) = compenso richiesto dal mercato</span>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="card">
+      <h4>Premio nullo</h4>
+      <p class="sm">Il forward coincide con il tasso futuro atteso. Questa e la teoria delle aspettative pure.</p>
+    </div>
+    <div class="card">
+      <h4>Premio positivo</h4>
+      <p class="sm">Il forward supera l'aspettativa: il mercato chiede rendimento extra sui titoli piu lunghi.</p>
+    </div>
+    <div class="card">
+      <h4>Premio negativo</h4>
+      <p class="sm">Il forward e inferiore all'aspettativa: puo accadere se il mercato preferisce scadenze lunghe.</p>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Forward vs aspettativa — scomponi il premio</h4>
+    <div class="igrid">
+      <div class="ig"><label>Forward annualizzato \(f_{1;2}\) (%)</label><input type="number" id="fp_fwd" value="8.6" step="0.1"></div>
+      <div class="ig"><label>Premio al rischio (%)</label><input type="number" id="fp_prem" value="1.0" step="0.1"></div>
+      <div class="ig"><label>Prezzo ZB2</label><input type="number" id="fp_p0" value="92.1895" step="0.0001"></div>
+      <div class="ig"><label>Nominale</label><input type="number" id="fp_nom" value="100" step="1"></div>
+    </div>
+    <button class="btn" onclick="calcForwardPremio()">Calcola</button>
+    <div id="fp_res"></div>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Scomposizione interattiva: \(f = E(y) + premio\)</div>
+    <div class="sg">
+      <label>Forward annualizzato</label>
+      <div class="srow"><input type="range" id="fx_fwd" min="0" max="12" step="0.1" value="8.6" oninput="updForwardLab()"><span class="sv" id="fx_fwd_v">8.6%</span></div>
+    </div>
+    <div class="sg">
+      <label>Premio al rischio</label>
+      <div class="srow"><input type="range" id="fx_prem" min="-3" max="4" step="0.1" value="1" oninput="updForwardLab()"><span class="sv" id="fx_prem_v">1.0%</span></div>
+    </div>
+    <canvas id="forwardChart"></canvas>
+    <div id="fx_note" class="info-box"></div>
+  </div>
+</section>
+
+<section class="sec" id="hpr">
+  <div class="sec-num">02 — Holding Period Return</div>
+  <h2>Perche il forward influenza l'HPR atteso?</h2>
+
+  <p>Se compro un titolo con scadenza piu lunga del mio orizzonte, sono esposto a <strong>rischio di prezzo</strong>. Se compro un titolo piu corto del mio orizzonte, sono esposto a <strong>rischio di reinvestimento</strong>.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>Investitore a 1 semestre</h4>
+      <p class="sm">Il TBill1 rimborsa il nominale ed e certo. Il TBill2 deve essere rivenduto dopo un semestre: il prezzo dipende dal tasso spot futuro.</p>
+      <div class="meter"><span id="m_price"></span></div>
+      <p class="sm mut">Rischio dominante: prezzo.</p>
+    </div>
+    <div class="card">
+      <h4>Investitore a 2 semestri</h4>
+      <p class="sm">Il TBill2 rimborsa a scadenza. Il TBill1 deve essere reinvestito: il rendimento finale dipende dal tasso futuro.</p>
+      <div class="meter"><span id="m_reinvest"></span></div>
+      <p class="sm mut">Rischio dominante: reinvestimento.</p>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Laboratorio HPR — Zero bond a 2 semestri</h4>
+    <div class="igrid">
+      <div class="ig"><label>Prezzo oggi ZB2</label><input type="number" id="h_p0" value="92.1895" step="0.0001"></div>
+      <div class="ig"><label>Nominale</label><input type="number" id="h_nom" value="100" step="1"></div>
+      <div class="ig"><label>Tasso futuro atteso annualizzato (%)</label><input type="number" id="h_ey" value="7.6" step="0.1"></div>
+      <div class="ig"><label>Tasso certo ZB1 semestrale (%)</label><input type="number" id="h_y1" value="4" step="0.1"></div>
+    </div>
+    <button class="btn" onclick="calcHPR()">Calcola HPR atteso</button>
+    <div id="h_res"></div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio dal PDF</div>
+    <h4>Supponi che \(f_{1;2}=8.6\%\) annualizzato incorpori un premio di 1% rispetto a \(E(y_{1;2})\). Calcola \(E(HPR_{ZB2;0,1})\).</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_hpr')">Mostra soluzione</button>
+    <div class="sol" id="s_hpr">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">\(E(y_{1;2}) = 8.6\% - 1.0\% = 7.6\%\) annualizzato, cioe 3.8% semestrale.</div>
+      <div class="step">Prezzo atteso tra un semestre: \(100 / 1.038 = 96.3391\).</div>
+      <div class="step">\(E(HPR) = 96.3391 / 92.1895 - 1 = \)<span class="ans">4.50%</span>.</div>
+      <div class="step">E maggiore del rendimento certo a 1 semestre, pari a <span class="ans">4.00%</span>: il premio compensa il rischio di prezzo.</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="teorie">
+  <div class="sec-num">03 — Le tre teorie</div>
+  <h2>Come leggere la curva dei rendimenti</h2>
+
+  <div class="grid3">
+    <div class="card">
+      <h4>1. Aspettative</h4>
+      <p class="sm">I forward sono uguali ai tassi futuri attesi: \(f_{i-1;i}=E(y_{i-1;i})\). Nessun premio per scadenza.</p>
+    </div>
+    <div class="card">
+      <h4>2. Preferenza liquidita</h4>
+      <p class="sm">Gli investitori preferiscono il breve periodo. I titoli lunghi devono offrire un premio: \(f&gt;E(y)\).</p>
+    </div>
+    <div class="card">
+      <h4>3. Mercati segmentati</h4>
+      <p class="sm">Ogni scadenza ha domanda e offerta proprie. I forward non sono necessariamente previsioni dei futuri tassi brevi.</p>
+    </div>
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Interpretazione rapida</div>
+    \[
+      curva\ crescente \not\Rightarrow sempre\ tassi\ futuri\ attesi\ crescenti
+    \]
+    <p class="sm mut mt16">Con premio di liquidita positivo, una curva piatta o crescente puo convivere con aspettative di tassi futuri stabili o persino decrescenti.</p>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Simulatore teorie: la stessa curva puo raccontare storie diverse</div>
+    <div class="scenario">
+      <button id="sc_expect" class="on" onclick="setScenario('expect')">Aspettative</button>
+      <button id="sc_liq" onclick="setScenario('liq')">Liquidita</button>
+      <button id="sc_seg" onclick="setScenario('seg')">Segmentazione</button>
+    </div>
+    <canvas id="theoryChart"></canvas>
+    <div id="theory_note" class="info-box"></div>
+  </div>
+</section>
+
+<section class="sec" id="liquidita">
+  <div class="sec-num">04 — Premio per la liquidita</div>
+  <h2>Una curva ripida anche con tassi attesi costanti</h2>
+
+  <p>Secondo la teoria della preferenza per la liquidita, le scadenze piu lunghe devono pagare un premio. Per questo i forward possono essere superiori ai tassi a breve attesi.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Teoria della liquidita</div>
+    \[f_{i-1;i} = E(y_{i-1;i}) + premio_i,\qquad premio_i &gt; 0\]
+    <p class="sm mut mt16">Il premio dovrebbe crescere con la lontananza del periodo: piu e lungo il rischio di prezzo, maggiore e la compensazione richiesta.</p>
+  </div>
+
+  <div class="calc">
+    <h4>Esempio USA — aspettativa costante + premio</h4>
+    <div class="igrid">
+      <div class="ig"><label>Tasso breve atteso annualizzato (%)</label><input type="number" id="liq_exp" value="2" step="0.1"></div>
+      <div class="ig"><label>Premio liquidita annualizzato (%)</label><input type="number" id="liq_prem" value="3" step="0.1"></div>
+      <div class="ig"><label>Periodi semestrali</label><input type="number" id="liq_n" value="3" min="2" max="8" step="1"></div>
+    </div>
+    <button class="btn" onclick="calcLiquidity()">Calcola curva spot</button>
+    <div id="liq_res"></div>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Aspettative costanti, curva spot crescente</div>
+    <canvas id="liqChart"></canvas>
+  </div>
+</section>
+
+<section class="sec" id="segmenti">
+  <div class="sec-num">05 — Mercati segmentati</div>
+  <h2>Quando ogni scadenza ha il suo mercato</h2>
+
+  <p>La teoria della segmentazione sostiene che bond a breve e a lungo termine non sono perfetti sostituti: ogni segmento ha investitori, vincoli e domanda/offerta propri.</p>
+
+  <table class="rtab">
+    <tr><th>Teoria</th><th>Ipotesi sul mercato</th><th>Cosa dice la curva</th></tr>
+    <tr><td class="ok">Aspettative</td><td>Nessuna preferenza di scadenza</td><td>Prevede direttamente i futuri tassi brevi</td></tr>
+    <tr><td class="warn">Liquidita</td><td>Preferenza media per il breve</td><td>Forward = aspettativa + premio positivo</td></tr>
+    <tr><td class="blu">Segmentazione</td><td>Scadenze poco sostituibili</td><td>Forma determinata da domanda/offerta locale</td></tr>
+    <tr><td>Preferred habitat</td><td>Preferenze per segmenti, ma con mobilita se il premio e sufficiente</td><td>Premio puo essere positivo o negativo</td></tr>
+  </table>
+
+  <div class="cbox">
+    <h4>Idea pratica</h4>
+    <p class="sm">La preferred habitat theory e una versione piu realistica: gli investitori hanno una scadenza preferita, ma possono spostarsi se il rendimento extra e abbastanza alto.</p>
+  </div>
+</section>
+
+<section class="sec" id="interpretazione">
+  <div class="sec-num">06 — Interpretazione della curva</div>
+  <h2>Spot, forward e forma della curva</h2>
+
+  <p>Il tasso spot a \(n\) periodi e una media geometrica dei forward precedenti. Per questo una curva spot crescente richiede forward sopra lo spot precedente, ma non richiede forward sempre crescenti.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Spot come media geometrica dei forward</div>
+    \[(1+y_n)^n=(1+f_{0;1})(1+f_{1;2})\cdots(1+f_{n-1;n})\]
+  </div>
+
+  <div class="calc">
+    <h4>Da forward a spot curve — esercizio interattivo</h4>
+    <div class="igrid">
+      <div class="ig"><label>\(y_1=f_{0;1}\) (%)</label><input type="number" id="fs_f1" value="1.0" step="0.1"></div>
+      <div class="ig"><label>\(f_{1;2}\) (%)</label><input type="number" id="fs_f2" value="2.0" step="0.1"></div>
+      <div class="ig"><label>\(f_{2;3}\) (%)</label><input type="number" id="fs_f3" value="1.9" step="0.1"></div>
+      <div class="ig"><label>\(f_{3;4}\) (%)</label><input type="number" id="fs_f4" value="1.8" step="0.1"></div>
+    </div>
+    <button class="btn" onclick="calcForwardToSpot()">Calcola spot</button>
+    <div id="fs_res"></div>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Forward non sempre crescenti, spot ancora crescente</div>
+    <canvas id="fsChart"></canvas>
+  </div>
+</section>
+
+<section class="sec" id="macro">
+  <div class="sec-num">07 — Lettura macro</div>
+  <h2>Che cosa muove livello e pendenza?</h2>
+
+  <p>La curva spot nominale riflette tasso reale, inflazione attesa e premi per il rischio. Le scadenze corte sono influenzate soprattutto dalla politica monetaria; quelle lunghe dall'inflazione attesa e dal ciclo.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Scomposizione approssimata</div>
+    \[(1+y)\approx(1+r)(1+\pi^e)\qquad\Rightarrow\qquad y\approx r+\pi^e\]
+    \[y_{rischioso}=y_{risk\ free}+premio\ per\ il\ rischio\]
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>Curva ripida</h4>
+      <p class="sm">Spesso segnala aspettative di tassi brevi futuri piu alti, inflazione futura piu elevata o premio liquidita significativo.</p>
+    </div>
+    <div class="card">
+      <h4>Curva invertita</h4>
+      <p class="sm">Spesso segnala attese di tassi brevi futuri piu bassi. La ragione puo essere minor inflazione attesa, minor tasso reale o rallentamento ciclico.</p>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Mini modello nominale</h4>
+    <div class="igrid">
+      <div class="ig"><label>Tasso reale breve (%)</label><input type="number" id="mac_r1" value="1.0" step="0.1"></div>
+      <div class="ig"><label>Inflazione attesa breve (%)</label><input type="number" id="mac_i1" value="1.5" step="0.1"></div>
+      <div class="ig"><label>Tasso reale lungo (%)</label><input type="number" id="mac_r5" value="1.2" step="0.1"></div>
+      <div class="ig"><label>Inflazione attesa lunga (%)</label><input type="number" id="mac_i5" value="2.2" step="0.1"></div>
+      <div class="ig"><label>Premio rischio lungo (%)</label><input type="number" id="mac_p5" value="0.4" step="0.1"></div>
+    </div>
+    <button class="btn" onclick="calcMacro()">Aggiorna curva</button>
+    <div id="mac_res"></div>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Livello nominale: reale + inflazione attesa + premio</div>
+    <canvas id="macroChart"></canvas>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>Lezione 05 — Le teorie della curva dei tassi spot</span>
+  <span>Fixed Income Analysis · SUPSI DEASS · Fabiano Cavadini</span>
+</footer>
+
+</div>
+
+<script>
+function $(id){ return document.getElementById(id); }
+function num(id){ return parseFloat($(id).value); }
+function fmt(x,d=4){ return Number(x).toFixed(d); }
+function pct(x,d=3){ return (x*100).toFixed(d)+'%'; }
+function fmtN(x){ return x.toLocaleString('it-CH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function toggleSol(id){ $(id).classList.toggle('on'); }
+
+const chartOpts = {
+  responsive:true,
+  maintainAspectRatio:false,
+  plugins:{legend:{labels:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}}},
+  scales:{
+    x:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono'}},grid:{color:'#333332'}},
+    y:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono'}},grid:{color:'#333332'}}
+  }
+};
+
+function calcForwardPremio(){
+  const f=num('fp_fwd');
+  const prem=num('fp_prem');
+  const ey=f-prem;
+  const p0=num('fp_p0');
+  const n=num('fp_nom');
+  const sell=n/(1+ey/200);
+  const hpr=sell/p0-1;
+  $('fp_res').innerHTML=`<div class="res">
+    <div class="rrow"><span class="rl">Tasso futuro atteso annualizzato</span><span class="rv big">${ey.toFixed(2)}%</span></div>
+    <div class="rrow"><span class="rl">Tasso futuro atteso semestrale</span><span class="rv">${(ey/2).toFixed(2)}%</span></div>
+    <div class="rrow"><span class="rl">Prezzo atteso tra 1 semestre</span><span class="rv">${fmtN(sell)}</span></div>
+    <div class="rrow"><span class="rl">E(HPR) sullo ZB2</span><span class="rv big">${(hpr*100).toFixed(2)}%</span></div>
+  </div>`;
+}
+
+let forwardChart;
+function initForwardLab(){
+  forwardChart=new Chart($('forwardChart'),{
+    type:'bar',
+    data:{labels:['Forward','E(y)','Premio'],datasets:[{label:'% annualizzato',data:[8.6,7.6,1],backgroundColor:['#d67556','#56b4d6','#6fcf97'],borderColor:['#d67556','#56b4d6','#6fcf97'],borderWidth:1}]},
+    options:{...chartOpts,scales:{...chartOpts.scales,y:{...chartOpts.scales.y,beginAtZero:true}}}
+  });
+  updForwardLab();
+}
+function updForwardLab(){
+  const f=parseFloat($('fx_fwd').value);
+  const prem=parseFloat($('fx_prem').value);
+  const ey=f-prem;
+  $('fx_fwd_v').textContent=f.toFixed(1)+'%';
+  $('fx_prem_v').textContent=prem.toFixed(1)+'%';
+  forwardChart.data.datasets[0].data=[f,ey,prem];
+  forwardChart.update();
+  const msg=prem>0 ? 'Premio positivo: il forward sovrastima il tasso futuro atteso secondo la preferenza per la liquidita.' :
+    prem<0 ? 'Premio negativo: gli investitori accettano forward sotto l aspettativa, tipico di un habitat preferito sul lungo.' :
+    'Premio nullo: il forward coincide con l aspettativa del mercato.';
+  $('fx_note').textContent=`E(y) = ${ey.toFixed(1)}%. ${msg}`;
+}
+
+function calcHPR(){
+  const p0=num('h_p0');
+  const n=num('h_nom');
+  const ey=num('h_ey')/200;
+  const y1=num('h_y1')/100;
+  const p1=n/(1+ey);
+  const hpr=p1/p0-1;
+  $('h_res').innerHTML=`<div class="res">
+    <div class="rrow"><span class="rl">Prezzo atteso in t=1</span><span class="rv">${fmtN(p1)}</span></div>
+    <div class="rrow"><span class="rl">E(HPR) ZB2, orizzonte 1 semestre</span><span class="rv big">${(hpr*100).toFixed(2)}%</span></div>
+    <div class="rrow"><span class="rl">Rendimento certo ZB1</span><span class="rv">${(y1*100).toFixed(2)}%</span></div>
+    <div class="rrow"><span class="rl">Extra rendimento atteso</span><span class="rv ${hpr-y1>=0?'ok':'warn'}">${((hpr-y1)*100).toFixed(2)}%</span></div>
+  </div>`;
+  $('m_price').style.width=Math.min(100,Math.max(8,50+(hpr-y1)*900))+'%';
+  $('m_reinvest').style.width=Math.min(100,Math.max(8,50-(hpr-y1)*900))+'%';
+}
+
+let theoryChart;
+const scenarios={
+  expect:{forwards:[1.55,0.78,0.76,0.73,0.66],expected:[1.55,0.78,0.76,0.73,0.66],premium:[0,0,0,0,0],note:'Teoria delle aspettative: i forward sono letti come aspettative dei futuri tassi a breve.'},
+  liq:{forwards:[1.55,0.78,0.76,0.73,0.66],expected:[1.55,0.55,0.45,0.35,0.20],premium:[0,0.23,0.31,0.38,0.46],note:'Preferenza per la liquidita: forward sopra le aspettative per compensare il rischio delle scadenze piu lunghe.'},
+  seg:{forwards:[1.55,0.78,0.76,0.73,0.66],expected:[1.20,1.05,0.90,0.95,0.80],premium:[0.35,-0.27,-0.14,-0.22,-0.14],note:'Mercati segmentati: la curva riflette domanda e offerta per scadenza, non una previsione pulita.'}
+};
+function initTheory(){
+  theoryChart=new Chart($('theoryChart'),{
+    type:'line',
+    data:{labels:['0-1','1-2','2-3','3-4','4-5'],datasets:[
+      {label:'Forward',data:[],borderColor:'#d67556',backgroundColor:'rgba(214,117,86,.1)',tension:.25},
+      {label:'E(y)',data:[],borderColor:'#56b4d6',backgroundColor:'rgba(86,180,214,.1)',tension:.25},
+      {label:'Premio',data:[],borderColor:'#6fcf97',backgroundColor:'rgba(111,207,151,.1)',tension:.25}
+    ]},
+    options:chartOpts
+  });
+  setScenario('expect');
+}
+function setScenario(name){
+  document.querySelectorAll('.scenario button').forEach(b=>b.classList.remove('on'));
+  $('sc_'+name).classList.add('on');
+  const s=scenarios[name];
+  theoryChart.data.datasets[0].data=s.forwards;
+  theoryChart.data.datasets[1].data=s.expected;
+  theoryChart.data.datasets[2].data=s.premium;
+  theoryChart.update();
+  $('theory_note').textContent=s.note;
+}
+
+let liqChart;
+function initLiquidity(){
+  liqChart=new Chart($('liqChart'),{
+    type:'line',
+    data:{labels:[],datasets:[
+      {label:'Spot curve',data:[],borderColor:'#d67556',backgroundColor:'rgba(214,117,86,.12)',tension:.25},
+      {label:'Forward',data:[],borderColor:'#56b4d6',backgroundColor:'rgba(86,180,214,.08)',borderDash:[5,5],tension:.25}
+    ]},
+    options:chartOpts
+  });
+  calcLiquidity();
+}
+function calcLiquidity(){
+  const exp=num('liq_exp')/200;
+  const prem=num('liq_prem')/200;
+  const n=Math.max(2,Math.min(8,parseInt($('liq_n').value,10)||3));
+  $('liq_n').value=n;
+  const fw=[],spots=[],labels=[];
+  let prod=1;
+  for(let i=1;i<=n;i++){
+    const f=i===1?exp:exp+prem;
+    fw.push(f*100);
+    prod*=1+f;
+    spots.push((Math.pow(prod,1/i)-1)*100);
+    labels.push(i+'s');
+  }
+  liqChart.data.labels=labels;
+  liqChart.data.datasets[0].data=spots;
+  liqChart.data.datasets[1].data=fw;
+  liqChart.update();
+  let rows='';
+  spots.forEach((s,i)=>{ rows+=`<tr><td>${i+1}</td><td>${fw[i].toFixed(3)}%</td><td class="ok">${s.toFixed(3)}%</td></tr>`; });
+  $('liq_res').innerHTML=`<div class="res"><table class="cft"><thead><tr><th>Periodo</th><th>Forward semestrale</th><th>Spot semestrale</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+let fsChart;
+function initForwardToSpot(){
+  fsChart=new Chart($('fsChart'),{
+    type:'line',
+    data:{labels:['1','2','3','4'],datasets:[
+      {label:'Forward input',data:[],borderColor:'#56b4d6',backgroundColor:'rgba(86,180,214,.08)',tension:.25},
+      {label:'Spot risultante',data:[],borderColor:'#d67556',backgroundColor:'rgba(214,117,86,.12)',tension:.25}
+    ]},
+    options:chartOpts
+  });
+  calcForwardToSpot();
+}
+function calcForwardToSpot(){
+  const f=[num('fs_f1'),num('fs_f2'),num('fs_f3'),num('fs_f4')].map(x=>x/100);
+  let prod=1, rows='', spots=[];
+  f.forEach((r,i)=>{
+    prod*=1+r;
+    const s=Math.pow(prod,1/(i+1))-1;
+    spots.push(s*100);
+    rows+=`<tr><td>${i+1}</td><td>${(r*100).toFixed(3)}%</td><td class="ok">${(s*100).toFixed(3)}%</td></tr>`;
+  });
+  $('fs_res').innerHTML=`<div class="res"><table class="cft"><thead><tr><th>Periodo</th><th>Forward</th><th>Spot</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  fsChart.data.datasets[0].data=f.map(x=>x*100);
+  fsChart.data.datasets[1].data=spots;
+  fsChart.update();
+}
+
+let macroChart;
+function initMacro(){
+  macroChart=new Chart($('macroChart'),{
+    type:'bar',
+    data:{labels:['1Y','5Y'],datasets:[
+      {label:'Tasso reale',data:[],backgroundColor:'#56b4d6'},
+      {label:'Inflazione attesa',data:[],backgroundColor:'#d67556'},
+      {label:'Premio rischio',data:[],backgroundColor:'#6fcf97'}
+    ]},
+    options:{...chartOpts,scales:{x:{...chartOpts.scales.x,stacked:true},y:{...chartOpts.scales.y,stacked:true,beginAtZero:true}}}
+  });
+  calcMacro();
+}
+function calcMacro(){
+  const r1=num('mac_r1'),i1=num('mac_i1'),r5=num('mac_r5'),i5=num('mac_i5'),p5=num('mac_p5');
+  const y1=r1+i1, y5=r5+i5+p5;
+  macroChart.data.datasets[0].data=[r1,r5];
+  macroChart.data.datasets[1].data=[i1,i5];
+  macroChart.data.datasets[2].data=[0,p5];
+  macroChart.update();
+  $('mac_res').innerHTML=`<div class="res">
+    <div class="rrow"><span class="rl">Rendimento nominale breve stimato</span><span class="rv big">${y1.toFixed(2)}%</span></div>
+    <div class="rrow"><span class="rl">Rendimento nominale lungo stimato</span><span class="rv big">${y5.toFixed(2)}%</span></div>
+    <div class="rrow"><span class="rl">Forma</span><span class="rv ${y5>=y1?'ok':'warn'}">${y5>=y1?'crescente / normale':'decrescente / invertita'}</span></div>
+  </div>`;
+}
+
+function initNav(){
+  const links=[...document.querySelectorAll('.nav a')];
+  const map={};
+  links.forEach(a=>map[a.getAttribute('href').slice(1)]=a);
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        links.forEach(a=>a.classList.remove('on'));
+        const a=map[e.target.id]; if(a) a.classList.add('on');
+      }
+    });
+  },{rootMargin:'-35% 0px -55% 0px',threshold:0});
+  document.querySelectorAll('.sec').forEach(s=>obs.observe(s));
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  initForwardLab();
+  calcForwardPremio();
+  calcHPR();
+  initTheory();
+  initLiquidity();
+  initForwardToSpot();
+  initMacro();
+  initNav();
+});
+</script>
+</body>
+</html>

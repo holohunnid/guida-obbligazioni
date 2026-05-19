@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Il rischio di tasso — Fixed Income Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#1f1f1e;--bg1:#272726;--bg2:#2f2f2e;--bg3:#383837;--acc:#d67556;--acc-dim:rgba(214,117,86,.13);--txt:#f0f0ef;--mut:#8a8a89;--bdr:#3a3a39;--grn:#6fcf97;--blu:#56b4d6}
+html{scroll-behavior:smooth}
+body{font-family:'Oxygen Mono',monospace;background:var(--bg);color:var(--txt);line-height:1.8;font-size:13.5px;display:flex;min-height:100vh}
+.sidebar{width:220px;min-width:220px;background:var(--bg1);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sb-brand{padding:24px 20px 20px;border-bottom:1px solid var(--bdr)}
+.sb-course{font-size:9px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sb-title{font-size:12px;color:var(--txt);line-height:1.5}
+.sb-nav{padding:16px 0;flex:1}
+.sb-section{font-size:9px;color:var(--mut);letter-spacing:.18em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;margin-top:16px}
+.sb-item{display:flex;align-items:flex-start;gap:10px;padding:10px 20px;text-decoration:none;transition:background .15s;cursor:default;position:relative}
+.sb-item.link{cursor:pointer}.sb-item.link:hover{background:var(--bg2)}
+.sb-item.active{background:var(--acc-dim)}.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--acc)}
+.sb-num{font-size:10px;color:var(--mut);min-width:18px;padding-top:1px}.sb-item.active .sb-num{color:var(--acc)}
+.sb-info{flex:1}.sb-name{font-size:11px;color:var(--mut);line-height:1.4}.sb-item.active .sb-name{color:var(--txt)}
+.sb-item.locked .sb-name,.sb-item.skipped .sb-name{color:var(--bg3)}
+.sb-tag{font-size:9px;margin-top:3px;letter-spacing:.08em}.sb-tag.curr{color:var(--acc)}.sb-tag.skip,.sb-tag.soon{color:var(--bg3)}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--bdr);font-size:10px;color:var(--bg3)}
+.content{flex:1;min-width:0;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+.hdr{border-bottom:1px solid var(--bdr);padding:48px 0 36px}.hdr .in{max-width:860px;margin:0 auto;padding:0 40px}.hdr .tag{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px}.hdr h1{font-size:24px;font-weight:400;line-height:1.3}.hdr .sub{color:var(--mut);font-size:11px;margin-top:6px}
+.nav{position:sticky;top:0;z-index:100;background:rgba(31,31,30,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr);overflow-x:auto}.nav .in{max-width:860px;margin:0 auto;padding:0 28px;display:flex}.nav a{display:block;padding:13px 12px;font-size:10px;color:var(--mut);text-decoration:none;letter-spacing:.08em;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}.nav a:hover,.nav a.on{color:var(--acc);border-bottom-color:var(--acc)}
+main{max-width:860px;margin:0 auto;padding:0 40px 80px;flex:1}.sec{padding:60px 0 48px;border-bottom:1px solid var(--bdr)}.sec:last-child{border-bottom:none}.sec-num{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}.sec h2{font-size:19px;font-weight:400;margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.sub-h{margin-top:28px}.sub-h h3{font-size:10px;color:var(--acc);font-weight:400;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+p{margin-bottom:10px}ul,ol{padding-left:18px;margin-bottom:10px}li{margin-bottom:3px}strong{color:var(--acc);font-weight:400}em{color:var(--blu);font-style:normal}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:18px 20px}.card h4{font-size:10px;color:var(--acc);letter-spacing:.1em;text-transform:uppercase;font-weight:400;margin-bottom:10px}
+.fmla{background:var(--bg1);border-left:3px solid var(--acc);border-radius:0 4px 4px 0;padding:18px 22px;margin:18px 0;overflow-x:auto}.fmla .fmla-ttl{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px}.fleg{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);font-size:11.5px;color:var(--mut);line-height:2}.fleg span{margin-right:14px}
+.calc{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}.calc h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:18px}.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px;margin-bottom:18px}.ig{display:flex;flex-direction:column;gap:5px}.ig label{font-size:11px;color:var(--mut)}.ig input,.ig select{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:8px 10px;color:var(--txt);font-family:'Oxygen Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;width:100%}.ig input:focus,.ig select:focus{border-color:var(--acc)}
+.btn{background:var(--acc);color:var(--bg);border:none;border-radius:3px;padding:9px 22px;font-family:'Oxygen Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:.05em;transition:opacity .2s}.btn:hover{opacity:.85}.btn-sm{padding:5px 14px;font-size:11px}
+.res{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:14px 18px;margin-top:14px}.rrow{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--bdr);gap:20px}.rrow:last-child{border-bottom:none}.rl{color:var(--mut);font-size:11.5px}.rv{color:var(--txt);font-size:14px;text-align:right}.rv.big{color:var(--acc);font-size:18px}
+.cft{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}.cft th{text-align:right;padding:7px 12px;color:var(--mut);border-bottom:1px solid var(--bdr);font-weight:400;font-size:10.5px;letter-spacing:.05em}.cft th:first-child{text-align:center}.cft td{text-align:right;padding:6px 12px;border-bottom:1px solid var(--bdr)}.cft td:first-child{text-align:center;color:var(--mut)}
+.rtab{width:100%;border-collapse:collapse;margin:14px 0;font-size:12.5px}.rtab th{padding:9px 13px;background:var(--bg2);border:1px solid var(--bdr);color:var(--mut);font-weight:400;font-size:10.5px;letter-spacing:.07em;text-align:left}.rtab td{padding:9px 13px;border:1px solid var(--bdr)}.rtab tr:nth-child(even) td{background:var(--bg1)}
+.chw{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}.chw canvas{max-height:340px}.ch-ttl{font-size:10px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+.sg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}.sg label{font-size:11px;color:var(--mut)}.srow{display:flex;align-items:center;gap:12px}input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--bdr);border-radius:2px;outline:none}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;background:var(--acc);border-radius:50%;cursor:pointer}.sv{min-width:62px;text-align:right;color:var(--acc);font-size:12.5px}
+.ex{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}.ex-lbl{font-size:10px;color:var(--blu);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}.ex h4{font-size:13px;font-weight:400;margin-bottom:10px}.sol{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)}.sol.on{display:block}.sol-lbl{font-size:10px;color:var(--grn);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}.step{margin-bottom:7px;padding:6px 12px;border-left:2px solid var(--grn);font-size:12.5px}.step .ans{color:var(--grn);font-size:14px}
+.cbox{border:1px solid var(--acc);border-radius:4px;padding:14px 18px;margin:18px 0;background:var(--acc-dim)}.cbox h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:8px}
+.ok{color:var(--grn)}.warn{color:var(--acc)}.info{color:var(--blu)}.mt16{margin-top:16px}.mt24{margin-top:24px}.sm{font-size:12px}.mut{color:var(--mut)}.acc{color:var(--acc)}.grn{color:var(--grn)}.blu{color:var(--blu)}.info-box{border-left:2px solid var(--blu);padding:8px 14px;margin:12px 0;font-size:12.5px;color:var(--mut)}
+footer{max-width:860px;margin:0 auto;padding:22px 40px;border-top:1px solid var(--bdr);font-size:11px;color:var(--mut);display:flex;justify-content:space-between;width:100%;gap:20px}@media(max-width:860px){body{display:block}.sidebar{position:relative;width:100%;height:auto}.content{display:block}footer{display:block}.hdr .in,main{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sb-brand"><div class="sb-course">Fixed Income Analysis</div><div class="sb-title">SUPSI — DEASS<br>Fabiano Cavadini</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Lezioni</div>
+    <div class="sb-item skipped"><span class="sb-num">01</span><div class="sb-info"><div class="sb-name">Introduzione ai mercati obbligazionari</div><div class="sb-tag skip">— saltata —</div></div></div>
+    <a class="sb-item link" href="bond-pricing.html"><span class="sb-num">02</span><div class="sb-info"><div class="sb-name">Il Pricing delle Obbligazioni</div></div></a>
+    <a class="sb-item link" href="lezione3.html"><span class="sb-num">03</span><div class="sb-info"><div class="sb-name">Il Rendimento dell'Investimento</div></div></a>
+    <a class="sb-item link" href="lezione4.html"><span class="sb-num">04</span><div class="sb-info"><div class="sb-name">La Struttura a Termine</div></div></a>
+    <a class="sb-item link" href="lezione5.html"><span class="sb-num">05</span><div class="sb-info"><div class="sb-name">Teorie della Curva Spot</div></div></a>
+    <div class="sb-item active"><span class="sb-num">06</span><div class="sb-info"><div class="sb-name">Il Rischio di Tasso</div><div class="sb-tag curr">in corso</div></div></div>
+  </nav>
+  <div class="sb-footer">Fixed Income Analysis · SUPSI</div>
+</aside>
+
+<div class="content">
+<header class="hdr"><div class="in"><div class="tag">Lezione 06 · Fixed Income Analysis</div><h1>Il rischio di tasso<br>Duration e Convexity</h1><div class="sub">Prezzo-rendimento · Duration · Modified duration · Convessita · Approssimazione del prezzo</div></div></header>
+
+<nav class="nav"><div class="in">
+  <a href="#prezzo">Prezzo-Yield</a><a href="#md">MD</a><a href="#duration">Duration</a><a href="#intermedia">Data Intermedia</a><a href="#fattori">Fattori</a><a href="#convexity">Convexity</a><a href="#approssima">Approssima</a>
+</div></nav>
+
+<main>
+<section class="sec" id="prezzo">
+  <div class="sec-num">01 — Relazione prezzo rendimento</div>
+  <h2>Il prezzo si muove in direzione opposta al rendimento</h2>
+  <p>Il rischio di tasso misura quanto cambia il prezzo di un bond quando cambia il suo rendimento alla scadenza. La relazione \(B(y)\) e <strong>decrescente</strong> e <strong>convessa</strong>: quando i tassi scendono il prezzo sale piu di quanto scenderebbe per un rialzo simmetrico dei tassi.</p>
+  <div class="grid3">
+    <div class="card"><h4>Inverso</h4><p class="sm">Se \(y\) aumenta, il valore attuale dei flussi diminuisce.</p></div>
+    <div class="card"><h4>Convesso</h4><p class="sm">La curva non e una retta: duration da sola produce un errore.</p></div>
+    <div class="card"><h4>Piu rischio a tassi bassi</h4><p class="sm">Quando \(y\) e basso la pendenza e maggiore, quindi il prezzo e piu sensibile.</p></div>
+  </div>
+  <div class="calc">
+    <h4>Curva prezzo-rendimento</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale</label><input id="py_nom" type="number" value="1000" step="100"></div>
+      <div class="ig"><label>Cedola annua (%)</label><input id="py_c" type="number" value="10" step="0.25"></div>
+      <div class="ig"><label>Vita residua (anni)</label><input id="py_years" type="number" value="30" step="1"></div>
+      <div class="ig"><label>Pagamenti annui</label><input id="py_p" type="number" value="2" step="1" min="1"></div>
+      <div class="ig"><label>YTM corrente (%)</label><input id="py_y" type="number" value="10" step="0.1"></div>
+      <div class="ig"><label>Shock annuo (bp)</label><input id="py_bp" type="number" value="100" step="25"></div>
+    </div>
+    <button class="btn" onclick="updatePriceYield()">Aggiorna curva</button>
+    <div id="py_res"></div>
+  </div>
+  <div class="chw"><div class="ch-ttl">Curva B(y) e tangente locale</div><canvas id="priceYieldChart"></canvas></div>
+</section>
+
+<section class="sec" id="md">
+  <div class="sec-num">02 — Modified duration</div>
+  <h2>La pendenza della curva diventa una misura di rischio</h2>
+  <p>Per piccole variazioni istantanee del rendimento, la variazione percentuale del prezzo si approssima con la <strong>modified duration</strong>.</p>
+  <div class="fmla">
+    <div class="fmla-ttl">Approssimazione lineare</div>
+    \[\Delta B \simeq B'(y_0)\Delta y\]
+    \[\frac{\Delta B}{B}\simeq -MD\cdot\Delta y\]
+    <div class="fleg"><span>\(MD\) = duration modificata periodale</span><span>\(\Delta y\) = variazione del rendimento periodale</span></div>
+  </div>
+  <div class="cbox"><h4>Regola pratica</h4><p class="sm">Se \(MD=7.10\), un aumento del rendimento di 1 punto percentuale produce circa \(-7.10\%\) di variazione del prezzo. Il segno e negativo perche prezzo e rendimento si muovono al contrario.</p></div>
+  <div class="ex">
+    <div class="ex-lbl">Esercizio dal PDF</div>
+    <h4>7% Bond USA, prezzo 1000, YTM annuo 7%, duration 14.71 semestri. Stima l'effetto di un aumento dello YTM annuo di +0.1%.</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_md')">Mostra soluzione</button>
+    <div class="sol" id="s_md"><div class="sol-lbl">Soluzione</div>
+      <div class="step">YTM periodale \(y=3.5\%\), shock periodale \(\Delta y=0.05\%\).</div>
+      <div class="step">\(MD = D/(1+y)=14.71/1.035=14.21\) semestri.</div>
+      <div class="step">\(\Delta B \simeq -14.21\cdot1000\cdot0.0005 = \)<span class="ans">-7.10</span>.</div>
+      <div class="step">Nuovo prezzo stimato: \(1000-7.10=\)<span class="ans">992.90</span>.</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="duration">
+  <div class="sec-num">03 — Duration</div>
+  <h2>Duration come baricentro dei flussi di cassa</h2>
+  <p>La duration di Macaulay e una media ponderata delle scadenze dei pagamenti. Il peso di ogni pagamento e il suo valore attuale diviso il prezzo del bond.</p>
+  <div class="fmla">
+    <div class="fmla-ttl">Formula</div>
+    \[D=\sum_{t=1}^{n}t\cdot\frac{PV(CF_t)}{B}\qquad\qquad MD=\frac{D}{1+y}\]
+  </div>
+  <div class="calc">
+    <h4>Calcolatore duration e MD</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale</label><input id="du_nom" type="number" value="1000" step="100"></div>
+      <div class="ig"><label>Cedola annua (%)</label><input id="du_c" type="number" value="7" step="0.25"></div>
+      <div class="ig"><label>YTM annuo (%)</label><input id="du_y" type="number" value="7" step="0.1"></div>
+      <div class="ig"><label>Vita residua (anni)</label><input id="du_years" type="number" value="10" step="1"></div>
+      <div class="ig"><label>Pagamenti annui</label><input id="du_p" type="number" value="2" min="1" step="1"></div>
+    </div>
+    <button class="btn" onclick="calcDuration()">Calcola duration</button>
+    <div id="du_res"></div>
+  </div>
+  <div class="chw"><div class="ch-ttl">Baricentro: PV dei flussi e contributo alla duration</div><canvas id="durationChart"></canvas></div>
+</section>
+
+<section class="sec" id="intermedia">
+  <div class="sec-num">04 — Data intermedia</div>
+  <h2>Duration quando la prossima cedola non e tra un periodo esatto</h2>
+  <p>Se siamo a una data intermedia \(w\), la prossima cedola arriva tra \(1-w\) periodi. Una via pratica e calcolare la duration al tempo 0 e sottrarre il tempo gia trascorso.</p>
+  <div class="fmla">
+    <div class="fmla-ttl">Relazione</div>
+    \[D_w = D_0 - w\]
+    <p class="sm mut mt16">Esempio PDF: con \(w=0.3\) e \(D_0=4.237061\), \(D_w=3.937061\).</p>
+  </div>
+  <div class="calc">
+    <h4>Duration a data intermedia</h4>
+    <div class="igrid">
+      <div class="ig"><label>Duration al tempo 0</label><input id="iw_d0" type="number" value="4.237061" step="0.0001"></div>
+      <div class="ig"><label>Parte periodo trascorsa \(w\)</label><input id="iw_w" type="number" value="0.3" step="0.05" min="0" max="0.99"></div>
+    </div>
+    <button class="btn" onclick="calcIntermedia()">Calcola</button>
+    <div id="iw_res"></div>
+  </div>
+</section>
+
+<section class="sec" id="fattori">
+  <div class="sec-num">05 — Fattori della duration</div>
+  <h2>Cedola, rendimento e vita residua cambiano la sensibilita</h2>
+  <ul>
+    <li>A parita di rendimento e scadenza, <strong>cedola piu bassa</strong> significa duration maggiore.</li>
+    <li>A parita di cedola e scadenza, <strong>rendimento piu basso</strong> significa duration maggiore.</li>
+    <li>Di solito la duration aumenta con la <strong>vita residua</strong>; per uno zero coupon coincide con la scadenza.</li>
+  </ul>
+  <div class="chw">
+    <div class="ch-ttl">Sposta i parametri e guarda la duration cambiare</div>
+    <div class="sg"><label>Cedola annua</label><div class="srow"><input id="fa_c" type="range" min="0" max="15" value="7" step="0.25" oninput="updateFactors()"><span class="sv" id="fa_c_v">7.00%</span></div></div>
+    <div class="sg"><label>YTM annuo</label><div class="srow"><input id="fa_y" type="range" min="0.5" max="15" value="7" step="0.25" oninput="updateFactors()"><span class="sv" id="fa_y_v">7.00%</span></div></div>
+    <div class="sg"><label>Vita residua</label><div class="srow"><input id="fa_n" type="range" min="1" max="50" value="30" step="1" oninput="updateFactors()"><span class="sv" id="fa_n_v">30Y</span></div></div>
+    <canvas id="factorsChart"></canvas>
+    <div id="fa_res" class="info-box"></div>
+  </div>
+</section>
+
+<section class="sec" id="convexity">
+  <div class="sec-num">06 — Convexity</div>
+  <h2>La correzione che rende l'approssimazione piu realistica</h2>
+  <p>La duration usa la tangente. La convexity aggiunge la curvatura: corregge verso l'alto l'approssimazione sia quando i tassi salgono sia quando scendono.</p>
+  <div class="fmla">
+    <div class="fmla-ttl">Duration + Convexity</div>
+    \[\frac{\Delta B}{B}\simeq -MD\cdot\Delta y+\frac{1}{2}C(\Delta y)^2\]
+    <div class="fleg"><span>\(C\) = convessita periodale</span><span>la parte \(C(\Delta y)^2/2\) e sempre positiva</span></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h4>Benefica per non callable</h4><p class="sm">A parita di MD, maggiore convexity significa piu upside quando i tassi scendono e meno downside quando salgono.</p></div>
+    <div class="card"><h4>Callable bond</h4><p class="sm">La call limita il rialzo del prezzo: sopra certe soglie la curva si appiattisce verso il call price.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="approssima">
+  <div class="sec-num">07 — Approssimazione del prezzo</div>
+  <h2>Confronta prezzo esatto, duration e convexity</h2>
+  <div class="calc">
+    <h4>Shock parallelo della curva</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale</label><input id="ap_nom" type="number" value="1000" step="100"></div>
+      <div class="ig"><label>Cedola annua (%)</label><input id="ap_c" type="number" value="7" step="0.25"></div>
+      <div class="ig"><label>YTM annuo (%)</label><input id="ap_y" type="number" value="5" step="0.1"></div>
+      <div class="ig"><label>Vita residua (anni)</label><input id="ap_years" type="number" value="10" step="1"></div>
+      <div class="ig"><label>Pagamenti annui</label><input id="ap_p" type="number" value="2" min="1" step="1"></div>
+      <div class="ig"><label>Shock annuo (bp)</label><input id="ap_bp" type="number" value="100" step="25"></div>
+    </div>
+    <button class="btn" onclick="calcApprox()">Confronta</button>
+    <div id="ap_res"></div>
+  </div>
+  <div class="chw"><div class="ch-ttl">Prezzo esatto vs approssimazioni</div><canvas id="approxChart"></canvas></div>
+  <div class="ex">
+    <div class="ex-lbl">Esercizio dal PDF</div>
+    <h4>Duration 15.13, convexity 272.288 in semestri, rendimento semestrale 2.5%, shock parallelo semestrale +0.5%. Approssima la variazione percentuale.</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_conv')">Mostra soluzione</button>
+    <div class="sol" id="s_conv"><div class="sol-lbl">Soluzione</div>
+      <div class="step">\(MD=15.13/(1+2.5\%)=14.761\).</div>
+      <div class="step">Duration only: \(-14.761\cdot0.005=\)<span class="ans">-7.38%</span>.</div>
+      <div class="step">Convexity: \(0.5\cdot272.288\cdot0.005^2=\)<span class="ans">+0.34%</span>.</div>
+      <div class="step">Totale: <span class="ans">-7.04%</span>, molto vicino al prezzo esatto dell'esempio.</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><span>Lezione 06 — Il rischio di tasso</span><span>Fixed Income Analysis · SUPSI DEASS · Fabiano Cavadini</span></footer>
+</div>
+
+<script>
+function $(id){return document.getElementById(id)}
+function n(id){return parseFloat($(id).value)}
+function fmt(x,d=3){return x.toFixed(d)}
+function money(x){return x.toLocaleString('it-CH',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function toggleSol(id){$(id).classList.toggle('on')}
+const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8a8a89',font:{family:'Oxygen Mono',size:11}}}},scales:{x:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono'}},grid:{color:'#333332'}},y:{ticks:{color:'#8a8a89',font:{family:'Oxygen Mono'}},grid:{color:'#333332'}}}};
+function bondStats(N,cAnn,yAnn,years,p){
+  const y=yAnn/100/p, c=N*cAnn/100/p, m=Math.round(years*p);
+  let price=0,durNum=0,convNum=0,cfs=[],pvs=[],weights=[];
+  for(let t=1;t<=m;t++){
+    const cf=t===m?c+N:c;
+    const pv=cf/Math.pow(1+y,t);
+    price+=pv; durNum+=t*pv; convNum+=t*(t+1)*pv/Math.pow(1+y,2);
+    cfs.push(cf); pvs.push(pv);
+  }
+  const D=durNum/price, MD=D/(1+y), C=convNum/price;
+  weights=pvs.map(pv=>pv/price);
+  return {price,D,MD,C,y,m,cfs,pvs,weights,Dann:D/p,MDann:MD/p};
+}
+function bondPrice(N,cAnn,yAnn,years,p){return bondStats(N,cAnn,yAnn,years,p).price}
+
+let priceYieldChart,durationChart,factorsChart,approxChart;
+function initCharts(){
+  priceYieldChart=new Chart($('priceYieldChart'),{type:'line',data:{labels:[],datasets:[{label:'Prezzo B(y)',data:[],borderColor:'#d67556',backgroundColor:'rgba(214,117,86,.1)',tension:.25},{label:'Tangente locale',data:[],borderColor:'#56b4d6',borderDash:[5,5],tension:0},{label:'Punto corrente',data:[],borderColor:'#6fcf97',backgroundColor:'#6fcf97',pointRadius:5,type:'scatter'}]},options:opts});
+  durationChart=new Chart($('durationChart'),{type:'bar',data:{labels:[],datasets:[{label:'PV(CF)',data:[],backgroundColor:'#56b4d6'},{label:'t * PV(CF) / B',data:[],backgroundColor:'#d67556',yAxisID:'y1'}]},options:{...opts,scales:{...opts.scales,y1:{position:'right',ticks:{color:'#d67556'},grid:{drawOnChartArea:false}}}}});
+  factorsChart=new Chart($('factorsChart'),{type:'line',data:{labels:[],datasets:[{label:'Duration al variare della cedola',data:[],borderColor:'#d67556',tension:.25},{label:'Punto corrente',data:[],borderColor:'#6fcf97',backgroundColor:'#6fcf97',pointRadius:5,type:'scatter'}]},options:opts});
+  approxChart=new Chart($('approxChart'),{type:'bar',data:{labels:['Prezzo iniziale','Esatto','Duration','Duration + Convexity'],datasets:[{label:'Prezzo',data:[],backgroundColor:['#8a8a89','#d67556','#56b4d6','#6fcf97']}]},options:opts});
+}
+function updatePriceYield(){
+  const N=n('py_nom'), c=n('py_c'), years=n('py_years'), p=n('py_p'), y0=n('py_y'), bp=n('py_bp');
+  const s=bondStats(N,c,y0,years,p), dy=bp/10000/p, y1=y0+bp/100;
+  const exact=bondPrice(N,c,y1,years,p), dur=s.price*(1-s.MD*dy);
+  const labels=[], prices=[], tang=[];
+  for(let yy=0.5; yy<=20.01; yy+=0.5){
+    labels.push(yy.toFixed(1)+'%');
+    prices.push(bondPrice(N,c,yy,years,p));
+    tang.push(s.price-s.MD*s.price*((yy-y0)/100/p));
+  }
+  priceYieldChart.data.labels=labels;
+  priceYieldChart.data.datasets[0].data=prices;
+  priceYieldChart.data.datasets[1].data=tang;
+  priceYieldChart.data.datasets[2].data=[{x:y0.toFixed(1)+'%',y:s.price}];
+  priceYieldChart.update();
+  $('py_res').innerHTML=`<div class="res"><div class="rrow"><span class="rl">Prezzo corrente</span><span class="rv big">${money(s.price)}</span></div><div class="rrow"><span class="rl">Duration annua / MD annua</span><span class="rv">${fmt(s.Dann,3)} / ${fmt(s.MDann,3)}</span></div><div class="rrow"><span class="rl">Prezzo esatto dopo shock</span><span class="rv">${money(exact)}</span></div><div class="rrow"><span class="rl">Stima duration only</span><span class="rv">${money(dur)}</span></div></div>`;
+}
+function calcDuration(){
+  const s=bondStats(n('du_nom'),n('du_c'),n('du_y'),n('du_years'),n('du_p'));
+  let rows='';
+  s.pvs.forEach((pv,i)=>{ if(i<12 || i===s.pvs.length-1) rows+=`<tr><td>${i+1}</td><td>${money(s.cfs[i])}</td><td>${money(pv)}</td><td>${fmt(s.weights[i],4)}</td><td>${fmt((i+1)*s.weights[i],4)}</td></tr>`; });
+  $('du_res').innerHTML=`<div class="res"><div class="rrow"><span class="rl">Prezzo</span><span class="rv big">${money(s.price)}</span></div><div class="rrow"><span class="rl">Duration periodale</span><span class="rv">${fmt(s.D,4)}</span></div><div class="rrow"><span class="rl">Duration annua</span><span class="rv">${fmt(s.Dann,4)}</span></div><div class="rrow"><span class="rl">Modified duration periodale</span><span class="rv">${fmt(s.MD,4)}</span></div><table class="cft"><thead><tr><th>t</th><th>CF</th><th>PV(CF)</th><th>Peso</th><th>Contributo D</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  durationChart.data.labels=s.pvs.map((_,i)=>String(i+1));
+  durationChart.data.datasets[0].data=s.pvs;
+  durationChart.data.datasets[1].data=s.weights.map((w,i)=>(i+1)*w);
+  durationChart.update();
+}
+function calcIntermedia(){
+  const d=n('iw_d0'), w=n('iw_w'), dw=d-w;
+  $('iw_res').innerHTML=`<div class="res"><div class="rrow"><span class="rl">Duration al tempo 0</span><span class="rv">${fmt(d,6)}</span></div><div class="rrow"><span class="rl">Parte periodo trascorsa</span><span class="rv">${fmt(w,3)}</span></div><div class="rrow"><span class="rl">Duration intermedia</span><span class="rv big">${fmt(dw,6)}</span></div></div>`;
+}
+function updateFactors(){
+  const c=n('fa_c'), y=n('fa_y'), years=n('fa_n'), p=2;
+  $('fa_c_v').textContent=fmt(c,2)+'%'; $('fa_y_v').textContent=fmt(y,2)+'%'; $('fa_n_v').textContent=years+'Y';
+  const labels=[], vals=[];
+  for(let cc=0; cc<=15.001; cc+=0.5){labels.push(cc.toFixed(1)+'%'); vals.push(bondStats(100,c?cc:cc,y,years,p).Dann)}
+  const cur=bondStats(100,c,y,years,p).Dann;
+  factorsChart.data.labels=labels;
+  factorsChart.data.datasets[0].data=vals;
+  factorsChart.data.datasets[1].data=[{x:c.toFixed(1)+'%',y:cur}];
+  factorsChart.update();
+  $('fa_res').textContent=`Duration corrente: ${fmt(cur,3)} anni. Zero coupon con stessa scadenza: duration = ${years.toFixed(0)} anni.`;
+}
+function calcApprox(){
+  const N=n('ap_nom'), c=n('ap_c'), y=n('ap_y'), years=n('ap_years'), p=n('ap_p'), bp=n('ap_bp');
+  const s=bondStats(N,c,y,years,p), dy=bp/10000/p, yNew=y+bp/100;
+  const exact=bondPrice(N,c,yNew,years,p);
+  const pDur=s.price*(1-s.MD*dy);
+  const pConv=s.price*(1-s.MD*dy+0.5*s.C*dy*dy);
+  approxChart.data.datasets[0].data=[s.price,exact,pDur,pConv]; approxChart.update();
+  $('ap_res').innerHTML=`<div class="res"><div class="rrow"><span class="rl">Prezzo iniziale</span><span class="rv big">${money(s.price)}</span></div><div class="rrow"><span class="rl">Duration / MD periodale</span><span class="rv">${fmt(s.D,3)} / ${fmt(s.MD,3)}</span></div><div class="rrow"><span class="rl">Convexity periodale</span><span class="rv">${fmt(s.C,3)}</span></div><div class="rrow"><span class="rl">Variazione esatta</span><span class="rv warn">${fmt((exact/s.price-1)*100,3)}%</span></div><div class="rrow"><span class="rl">Duration only</span><span class="rv">${fmt((pDur/s.price-1)*100,3)}%</span></div><div class="rrow"><span class="rl">Duration + convexity</span><span class="rv ok">${fmt((pConv/s.price-1)*100,3)}%</span></div></div>`;
+}
+function initNav(){
+  const links=[...document.querySelectorAll('.nav a')], map={}; links.forEach(a=>map[a.getAttribute('href').slice(1)]=a);
+  const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.remove('on')); const a=map[e.target.id]; if(a)a.classList.add('on')}})},{rootMargin:'-35% 0px -55% 0px',threshold:0});
+  document.querySelectorAll('.sec').forEach(s=>obs.observe(s));
+}
+document.addEventListener('DOMContentLoaded',()=>{initCharts();updatePriceYield();calcDuration();calcIntermedia();updateFactors();calcApprox();initNav()});
+</script>
+</body>
+</html>
