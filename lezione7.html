@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L'immunizzazione — Fixed Income Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#1f1f1e;--bg1:#272726;--bg2:#2f2f2e;--bg3:#383837;--acc:#d67556;--acc-dim:rgba(214,117,86,.13);--txt:#f0f0ef;--mut:#8a8a89;--bdr:#3a3a39;--grn:#6fcf97;--blu:#56b4d6}
+html{scroll-behavior:smooth}
+body{font-family:'Oxygen Mono',monospace;background:var(--bg);color:var(--txt);line-height:1.8;font-size:13.5px;display:flex;min-height:100vh}
+.sidebar{width:220px;min-width:220px;background:var(--bg1);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sb-brand{padding:24px 20px 20px;border-bottom:1px solid var(--bdr)}
+.sb-course{font-size:9px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sb-title{font-size:12px;color:var(--txt);line-height:1.5}
+.sb-nav{padding:16px 0;flex:1}
+.sb-section{font-size:9px;color:var(--mut);letter-spacing:.18em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;margin-top:16px}
+.sb-item{display:flex;align-items:flex-start;gap:10px;padding:10px 20px;text-decoration:none;transition:background .15s;cursor:default;position:relative}
+.sb-item.link{cursor:pointer}.sb-item.link:hover{background:var(--bg2)}
+.sb-item.active{background:var(--acc-dim)}.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--acc)}
+.sb-num{font-size:10px;color:var(--mut);min-width:18px;padding-top:1px}.sb-item.active .sb-num{color:var(--acc)}
+.sb-info{flex:1}.sb-name{font-size:11px;color:var(--mut);line-height:1.4}.sb-item.active .sb-name{color:var(--txt)}
+.sb-item.skipped .sb-name{color:var(--bg3)}
+.sb-tag{font-size:9px;margin-top:3px;letter-spacing:.08em}.sb-tag.curr{color:var(--acc)}.sb-tag.skip{color:var(--bg3)}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--bdr);font-size:10px;color:var(--bg3)}
+.content{flex:1;min-width:0;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+.hdr{border-bottom:1px solid var(--bdr);padding:48px 0 36px}.hdr .in{max-width:860px;margin:0 auto;padding:0 40px}.hdr .tag{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px}.hdr h1{font-size:24px;font-weight:400;line-height:1.3}.hdr .sub{color:var(--mut);font-size:11px;margin-top:6px}
+.nav{position:sticky;top:0;z-index:100;background:rgba(31,31,30,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr);overflow-x:auto}.nav .in{max-width:860px;margin:0 auto;padding:0 28px;display:flex}.nav a{display:block;padding:13px 12px;font-size:10px;color:var(--mut);text-decoration:none;letter-spacing:.08em;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}.nav a:hover,.nav a.on{color:var(--acc);border-bottom-color:var(--acc)}
+main{max-width:860px;margin:0 auto;padding:0 40px 80px;flex:1}.sec{padding:60px 0 48px;border-bottom:1px solid var(--bdr)}.sec:last-child{border-bottom:none}.sec-num{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}.sec h2{font-size:19px;font-weight:400;margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.sub-h{margin-top:28px}.sub-h h3{font-size:10px;color:var(--acc);font-weight:400;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+p{margin-bottom:10px}ul,ol{padding-left:18px;margin-bottom:10px}li{margin-bottom:3px}strong{color:var(--acc);font-weight:400}em{color:var(--blu);font-style:normal}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:18px 20px}.card h4{font-size:10px;color:var(--acc);letter-spacing:.1em;text-transform:uppercase;font-weight:400;margin-bottom:10px}
+.fmla{background:var(--bg1);border-left:3px solid var(--acc);border-radius:0 4px 4px 0;padding:18px 22px;margin:18px 0;overflow-x:auto}.fmla .fmla-ttl{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px}.fleg{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);font-size:11.5px;color:var(--mut);line-height:2}.fleg span{margin-right:14px}
+.calc{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}.calc h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:18px}.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px;margin-bottom:18px}.ig{display:flex;flex-direction:column;gap:5px}.ig label{font-size:11px;color:var(--mut)}.ig input,.ig select{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:8px 10px;color:var(--txt);font-family:'Oxygen Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;width:100%}.ig input:focus,.ig select:focus{border-color:var(--acc)}
+.btn{background:var(--acc);color:var(--bg);border:none;border-radius:3px;padding:9px 22px;font-family:'Oxygen Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:.05em;transition:opacity .2s}.btn:hover{opacity:.85}.btn-sm{padding:5px 14px;font-size:11px}
+.res{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:14px 18px;margin-top:14px}.rrow{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--bdr);gap:20px}.rrow:last-child{border-bottom:none}.rl{color:var(--mut);font-size:11.5px}.rv{color:var(--txt);font-size:14px;text-align:right}.rv.big{color:var(--acc);font-size:18px}
+.cft{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}.cft th{text-align:right;padding:7px 12px;color:var(--mut);border-bottom:1px solid var(--bdr);font-weight:400;font-size:10.5px;letter-spacing:.05em}.cft th:first-child{text-align:left}.cft td{text-align:right;padding:6px 12px;border-bottom:1px solid var(--bdr)}.cft td:first-child{text-align:left;color:var(--mut)}.cft tr.hi td{color:var(--acc);font-weight:600}
+.rtab{width:100%;border-collapse:collapse;margin:14px 0;font-size:12.5px}.rtab th{padding:9px 13px;background:var(--bg2);border:1px solid var(--bdr);color:var(--mut);font-weight:400;font-size:10.5px;letter-spacing:.07em;text-align:left}.rtab td{padding:9px 13px;border:1px solid var(--bdr)}.rtab tr:nth-child(even) td{background:var(--bg1)}.rtab tr.hi td{color:var(--acc);font-weight:600}
+.chw{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}.chw canvas{max-height:360px}.ch-ttl{font-size:10px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+.sg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}.sg label{font-size:11px;color:var(--mut)}.srow{display:flex;align-items:center;gap:12px}input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--bdr);border-radius:2px;outline:none}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;background:var(--acc);border-radius:50%;cursor:pointer}.sv{min-width:70px;text-align:right;color:var(--acc);font-size:12.5px}
+.ex{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}.ex-lbl{font-size:10px;color:var(--blu);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}.ex h4{font-size:13px;font-weight:400;margin-bottom:10px}.sol{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)}.sol.on{display:block}.sol-lbl{font-size:10px;color:var(--grn);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}.step{margin-bottom:7px;padding:6px 12px;border-left:2px solid var(--grn);font-size:12.5px}.step .ans{color:var(--grn);font-size:14px}
+.cbox{border:1px solid var(--acc);border-radius:4px;padding:14px 18px;margin:18px 0;background:var(--acc-dim)}.cbox h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:8px}
+.bond-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}.bond-tab{background:var(--bg2);color:var(--mut);border:1px solid var(--bdr);border-radius:3px;padding:7px 14px;font-family:'Oxygen Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s}.bond-tab.on{color:var(--acc);border-color:var(--acc);background:var(--acc-dim)}
+.ok{color:var(--grn)}.warn{color:var(--acc)}.info{color:var(--blu)}.mt16{margin-top:16px}.mt24{margin-top:24px}.sm{font-size:12px}.mut{color:var(--mut)}.acc{color:var(--acc)}.grn{color:var(--grn)}.blu{color:var(--blu)}.info-box{border-left:2px solid var(--blu);padding:8px 14px;margin:12px 0;font-size:12.5px;color:var(--mut)}
+.live-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}@media(max-width:680px){.live-grid{grid-template-columns:1fr}}
+.live-card{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:14px 16px}.live-card h5{font-size:9px;color:var(--mut);letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}.live-val{font-size:17px;color:var(--txt);margin-bottom:2px}.live-hpr{font-size:13px}.live-card.immune .live-val,.live-card.immune .live-hpr{color:var(--grn)}.live-card.risk-re .live-val,.live-card.risk-re .live-hpr{color:var(--acc)}.live-card.risk-px .live-val,.live-card.risk-px .live-hpr{color:var(--blu)}
+footer{max-width:860px;margin:0 auto;padding:22px 40px;border-top:1px solid var(--bdr);font-size:11px;color:var(--mut);display:flex;justify-content:space-between;width:100%;gap:20px}@media(max-width:860px){body{display:block}.sidebar{position:relative;width:100%;height:auto}.content{display:block}footer{display:block}.hdr .in,main{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-course">Fixed Income Analysis</div>
+    <div class="sb-title">Guida obbligazioni</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Lezioni</div>
+    <div class="sb-item skipped"><span class="sb-num">01</span><div class="sb-info"><div class="sb-name">Introduzione ai mercati obbligazionari</div><div class="sb-tag skip">— saltata —</div></div></div>
+    <a class="sb-item link" href="bond-pricing.html"><span class="sb-num">02</span><div class="sb-info"><div class="sb-name">Il Pricing delle Obbligazioni</div></div></a>
+    <a class="sb-item link" href="lezione3.html"><span class="sb-num">03</span><div class="sb-info"><div class="sb-name">Il Rendimento dell'Investimento</div></div></a>
+    <a class="sb-item link" href="lezione4.html"><span class="sb-num">04</span><div class="sb-info"><div class="sb-name">La Struttura a Termine</div></div></a>
+    <a class="sb-item link" href="lezione5.html"><span class="sb-num">05</span><div class="sb-info"><div class="sb-name">Teorie della Curva Spot</div></div></a>
+    <a class="sb-item link" href="lezione6.html"><span class="sb-num">06</span><div class="sb-info"><div class="sb-name">Il Rischio di Tasso</div></div></a>
+    <div class="sb-item active"><span class="sb-num">07</span><div class="sb-info"><div class="sb-name">L'immunizzazione</div><div class="sb-tag curr">in corso</div></div></div>
+    <a class="sb-item link" href="lezione8.html"><span class="sb-num">08</span><div class="sb-info"><div class="sb-name">La gestione attiva</div></div></a>
+  </nav>
+  <div class="sb-footer">Fixed Income Analysis</div>
+</aside>
+
+<div class="content">
+
+<header class="hdr">
+  <div class="in">
+    <div class="tag">Lezione 07 · Fixed Income Analysis</div>
+    <h1>L'immunizzazione<br>e l'Asset &amp; Liability Management</h1>
+    <div class="sub">ALM · ΔV = ΔA − ΔP · GIC · Tre bond · Condizione D = H · Ribilanciamento</div>
+  </div>
+</header>
+
+<nav class="nav"><div class="in">
+  <a href="#alm">ALM</a>
+  <a href="#valore">Valore economico</a>
+  <a href="#gic">GIC</a>
+  <a href="#confronto">Tre bond</a>
+  <a href="#condizione">D = H</a>
+  <a href="#ribilanciamento">Ribilanciamento</a>
+</div></nav>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════════ 01 ALM -->
+<section class="sec" id="alm">
+  <div class="sec-num">01 — Asset &amp; Liability Management</div>
+  <h2>Gli investitori istituzionali gestiscono attivi e passivi insieme</h2>
+
+  <p>Per <strong>banche, assicurazioni e fondi pensione</strong> gli obiettivi di investimento non sono autonomi: dipendono strutturalmente dalle passività di bilancio. Il profitto è il differenziale tra il rendimento degli attivi e il costo dei passivi; il rischio è che uno shock sui tassi lo eroda.</p>
+
+  <div class="grid3">
+    <div class="card">
+      <h4>Cash Flow</h4>
+      <p class="sm">Essere in grado di far fronte alle uscite in ogni momento.</p>
+      <p class="sm acc">\(\sum CF_A \geq \sum CF_P\)</p>
+    </div>
+    <div class="card">
+      <h4>Bilancio</h4>
+      <p class="sm">Preservare il valore economico dell'impresa per gli azionisti.</p>
+      <p class="sm acc">\(V = A - P \geq 0\)</p>
+    </div>
+    <div class="card">
+      <h4>Trade-off</h4>
+      <p class="sm">Generare ricavi (rischio) preservando il valore economico (stabilità).</p>
+    </div>
+  </div>
+
+  <div class="sub-h"><h3>Tipologie di investitori</h3></div>
+  <table class="rtab">
+    <tr><th>Soggetto</th><th>Attivi tipici</th><th>Passivi tipici</th><th>Rischio principale</th></tr>
+    <tr><td>Banca</td><td>Prestiti, titoli</td><td>Depositi a vista, obbligazioni</td><td>Tasso: attivi > passivi in duration</td></tr>
+    <tr><td>Assicurazione vita</td><td>Bond, equity</td><td>Polizze, rendite</td><td>Tasso: passivi molto lunghi</td></tr>
+    <tr><td>Fondo pensione</td><td>Bond, equity, real asset</td><td>Prestazioni pensionistiche future</td><td>Tasso + longevità</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ 02 VALORE ECONOMICO -->
+<section class="sec" id="valore">
+  <div class="sec-num">02 — La variazione del valore economico</div>
+  <h2>Immunizzare il patrimonio netto contro le variazioni dei tassi</h2>
+
+  <p>Il valore per gli azionisti è \(V = A - P\). L'obiettivo ALM è rendere \(\Delta V = 0\) anche se i tassi si muovono, cioè far sì che attivi e passivi reagiscano allo stesso modo.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Condizione di immunizzazione ALM</div>
+    \[\Delta V = \Delta A - \Delta P = 0 \;\Longleftrightarrow\; \Delta A = \Delta P\]
+    <p class="sm mut mt16">Assumendo una variazione <em>istantanea e parallela</em> della curva dei tassi spot:</p>
+    \[-MD_A \cdot A \cdot \Delta y = -MD_P \cdot P \cdot \Delta y \;\Longleftrightarrow\; \boxed{MD_A \cdot A = MD_P \cdot P}\]
+    <p class="sm mut mt16">Se la curva è piatta (stessa duration e MD per ogni scadenza):</p>
+    \[D_A \cdot A = D_P \cdot P\]
+    <div class="fleg">
+      <span>\(A\) = valore di mercato degli attivi</span>
+      <span>\(P\) = valore di mercato dei passivi</span>
+      <span>\(MD_A, MD_P\) = modified duration di attivi e passivi</span>
+      <span>\(\Delta y\) = shock parallelo della curva</span>
+    </div>
+  </div>
+
+  <div class="info-box">Attenzione: il bilancio economico differisce dal bilancio contabile quando i passivi sono iscritti a costo storico anziché a valore di mercato. L'immunizzazione opera sul bilancio economico.</div>
+
+  <div class="calc">
+    <h4>Calcolatore ALM — sensibilità del patrimonio netto</h4>
+    <div class="igrid">
+      <div class="ig"><label>Attivi A (mio $)</label><input id="alm_a" type="number" value="100" step="1"></div>
+      <div class="ig"><label>MD attivi</label><input id="alm_mda" type="number" value="5" step="0.1"></div>
+      <div class="ig"><label>Passivi P (mio $)</label><input id="alm_p" type="number" value="90" step="1"></div>
+      <div class="ig"><label>MD passivi</label><input id="alm_mdp" type="number" value="3" step="0.1"></div>
+      <div class="ig"><label>Shock Δy (%)</label><input id="alm_dy" type="number" value="1" step="0.1"></div>
+    </div>
+    <button class="btn" onclick="calcALM()">Calcola</button>
+    <div id="alm_res"></div>
+  </div>
+
+  <div class="chw"><div class="ch-ttl">Variazioni: attivi · passivi · patrimonio netto</div><canvas id="almChart"></canvas></div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio dal PDF</div>
+    <h4>Società con $100 mio di attivi (\(MD_A = 5\)) e $90 mio di passivi (\(MD_P = 3\)). Calcola l'effetto di un rialzo dei tassi di +1% sul valore economico degli azionisti.</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_alm')">Mostra soluzione</button>
+    <div class="sol" id="s_alm">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">\(\Delta A = -MD_A \cdot A \cdot \Delta y = -5 \times 100 \times 0.01 = \)<span class="ans">-$5 mio</span></div>
+      <div class="step">\(\Delta P = -MD_P \cdot P \cdot \Delta y = -3 \times 90 \times 0.01 = \)<span class="ans">-$2.7 mio</span></div>
+      <div class="step">\(\Delta V = -5 - (-2.7) = \)<span class="ans">-$2.3 mio</span></div>
+      <div class="step">Patrimonio netto: da \(100-90 = \$10\) mio a \(95-87.3 = \)<span class="ans">$7.7 mio</span> (−23%)</div>
+      <div class="step">Condizione: \(MD_A \cdot A = 5 \times 100 = 500 \neq MD_P \cdot P = 3 \times 90 = 270\) → <span class="warn">NON immunizzato</span>. Servono attivi con \(MD_A = 2.7\) (o aumentare P).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ 03 GIC -->
+<section class="sec" id="gic">
+  <div class="sec-num">03 — L'immunizzazione per una singola passività</div>
+  <h2>Il Guaranteed Investment Contract: garantire un valore futuro certo</h2>
+
+  <p>Un'impresa di assicurazione vende un <strong>Guaranteed Investment Contract (GIC)</strong> che promette un rendimento semestrale del 6.25% attraverso un unico pagamento a scadenza, tra 5.5 anni (11 semestri).</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Il problema di immunizzazione</div>
+    \[\text{Premio incassato:}\quad A = P = \frac{L}{\left(1+\frac{y^a}{2}\right)^H}\]
+    \[\text{Passività a scadenza:}\quad L = A \cdot \left(1 + y^a_s\right)^H\]
+    <div class="fleg">
+      <span>\(L\) = valore futuro garantito</span>
+      <span>\(y^a_s\) = rendimento semestrale garantito = 6.25%</span>
+      <span>\(H\) = orizzonte in semestri = 11</span>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>GIC — calcola premio e passività</h4>
+    <div class="igrid">
+      <div class="ig"><label>Premio investito ($)</label><input id="gic_inv" type="number" value="8820262" step="1000"></div>
+      <div class="ig"><label>Rendimento semestrale (%)</label><input id="gic_y" type="number" value="6.25" step="0.05"></div>
+      <div class="ig"><label>Semestri H</label><input id="gic_h" type="number" value="11" step="1" min="1"></div>
+    </div>
+    <button class="btn" onclick="calcGIC()">Calcola</button>
+    <div id="gic_res"></div>
+  </div>
+
+  <div class="sub-h"><h3>I tre bond candidati</h3></div>
+  <p>L'assicurazione investe il premio di $8'820'262 in uno dei tre bond seguenti, tutti prezzati a rendimento iniziale 12.5% annuo (6.25% semestrale):</p>
+
+  <table class="rtab">
+    <tr><th>Bond</th><th>Cedola annua</th><th>Vita residua</th><th>Nominale acquistato</th><th>Prezzo</th><th>Rischio dominante</th></tr>
+    <tr><td class="warn">A</td><td>12.5%</td><td>5.5 anni (11 sem.)</td><td>$8'820'262</td><td>100</td><td>Reinvestimento</td></tr>
+    <tr><td class="blu">B</td><td>12.5%</td><td>15 anni (30 sem.)</td><td>$8'820'262</td><td>100</td><td>Prezzo</td></tr>
+    <tr><td class="grn">C</td><td>10.125%</td><td>8 anni (16 sem.)</td><td>$10'000'000</td><td>88.20%</td><td>Nessuno (immunizzato)</td></tr>
+  </table>
+
+  <p>Ipotesi: la curva dei tassi è inizialmente <strong>piatta al 12.5%</strong>, subisce <strong>una sola variazione parallela</strong> prima del primo pagamento cedolare, così che tutti i flussi vengano "rivalutati" al nuovo tasso.</p>
+
+  <div class="cbox">
+    <h4>Logica dell'esperimento</h4>
+    <p class="sm">Ogni bond genera cedole che vengono reinvestite al nuovo tasso, e al termine dei 5.5 anni vale il prezzo di mercato (o il nominale se scaduto). Il valore finale è la somma di questi due componenti. Un bond è immunizzato se il valore finale ≥ target = $17'183'033 per qualsiasi variazione di tasso.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ 04 CONFRONTO -->
+<section class="sec" id="confronto">
+  <div class="sec-num">04 — I tre bond a confronto</div>
+  <h2>Come reagisce il valore accumulato al cambiamento dei tassi?</h2>
+
+  <p>Sposta il rendimento per vedere come si comportano i tre bond. Il valore target rimane fisso a <strong>$17'183'033</strong> (HPR annuo = 12.5%).</p>
+
+  <div class="sg">
+    <label>Nuovo rendimento annuo \(y^a_{new}\)</label>
+    <div class="srow">
+      <input id="cmp_y" type="range" min="8" max="17" value="12.5" step="0.25" oninput="updateComparison()">
+      <span class="sv" id="cmp_y_v">12.50%</span>
+    </div>
+  </div>
+
+  <div class="live-grid">
+    <div class="live-card risk-re" id="lc_a">
+      <h5>Bond A — 12.5% · 5.5Y</h5>
+      <div class="live-val" id="lv_a">—</div>
+      <div class="live-hpr" id="lh_a">HPR —</div>
+    </div>
+    <div class="live-card risk-px" id="lc_b">
+      <h5>Bond B — 12.5% · 15Y</h5>
+      <div class="live-val" id="lv_b">—</div>
+      <div class="live-hpr" id="lh_b">HPR —</div>
+    </div>
+    <div class="live-card immune" id="lc_c">
+      <h5>Bond C — 10.125% · 8Y ✓</h5>
+      <div class="live-val" id="lv_c">—</div>
+      <div class="live-hpr" id="lh_c">HPR —</div>
+    </div>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">HPR annuo vs rendimento — confronto tra i tre bond</div>
+    <canvas id="hprChart"></canvas>
+  </div>
+
+  <div class="sub-h"><h3>Tabella completa HPR</h3></div>
+  <div class="bond-tabs">
+    <button class="bond-tab on" onclick="showBondTab('a',this)">Bond A — 12.5% · 5.5Y</button>
+    <button class="bond-tab" onclick="showBondTab('b',this)">Bond B — 12.5% · 15Y</button>
+    <button class="bond-tab" onclick="showBondTab('c',this)">Bond C — 10.125% · 8Y</button>
+  </div>
+  <div id="bond_table_a"></div>
+  <div id="bond_table_b" style="display:none"></div>
+  <div id="bond_table_c" style="display:none"></div>
+
+  <div class="grid3" style="margin-top:24px">
+    <div class="card">
+      <h4 class="warn">Bond A — Rischio reinvestimento</h4>
+      <p class="sm">Scadenza = orizzonte: il prezzo a scadenza è sempre il nominale. Se i tassi <em>scendono</em>, le cedole vengono reinvestite a un tasso inferiore → HPR &lt; 12.5%.</p>
+    </div>
+    <div class="card">
+      <h4 class="blu">Bond B — Rischio di prezzo</h4>
+      <p class="sm">Scadenza 15 anni &gt; orizzonte: le cedole restanti devono essere attualizzate. Se i tassi <em>salgono</em>, il prezzo del bond a 5.5 anni scende → HPR &lt; 12.5%.</p>
+    </div>
+    <div class="card">
+      <h4 class="grn">Bond C — Immunizzato</h4>
+      <p class="sm">I due rischi si controbilanciano esattamente. HPR ≥ 12.5% per qualsiasi variazione di tasso. Il portafoglio è immunizzato.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ 05 CONDIZIONE D=H -->
+<section class="sec" id="condizione">
+  <div class="sec-num">05 — La condizione di immunizzazione</div>
+  <h2>Perché bond C funziona? Perché la sua duration è uguale all'orizzonte</h2>
+
+  <p>La risposta alla domanda del PDF: il bond C immunizza perché la sua <strong>duration di Macaulay è uguale all'orizzonte di investimento</strong> \(H = 5.5\) anni \(= 11\) semestri.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Le tre condizioni di Redington (1952)</div>
+    \[\text{(1)}\quad A = P \qquad \Rightarrow \text{ investimento pari al valore attuale della passività}\]
+    \[\text{(2)}\quad D_A = H \qquad \Rightarrow \text{ duration del bond = orizzonte della passività}\]
+    \[\text{(3)}\quad C_A > 0 \qquad \Rightarrow \text{ convessità positiva (soddisfatta da ogni bond standard)}\]
+    <div class="fleg">
+      <span>\(D_A\) = duration di Macaulay del portafoglio investito (in periodi)</span>
+      <span>\(H\) = orizzonte della passività (in periodi)</span>
+    </div>
+  </div>
+
+  <div class="sub-h"><h3>Il meccanismo: rischio prezzo e rischio reinvestimento si annullano</h3></div>
+  <div class="grid2">
+    <div class="card">
+      <h4>Quando i tassi salgono</h4>
+      <p class="sm">Le cedole future vengono reinvestite a tassi più alti → <span class="grn">maggiori interessi attivi</span>.<br>Il prezzo residuo del bond scende → <span class="warn">minusvalenza</span>.<br>Se \(D = H\): i due effetti si compensano esattamente.</p>
+    </div>
+    <div class="card">
+      <h4>Quando i tassi scendono</h4>
+      <p class="sm">Le cedole future vengono reinvestite a tassi più bassi → <span class="warn">minori interessi attivi</span>.<br>Il prezzo residuo del bond sale → <span class="grn">plusvalenza</span>.<br>Se \(D = H\): i due effetti si compensano esattamente.</p>
+    </div>
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Perché la convessità garantisce HPR ≥ target</div>
+    <p class="sm">Sia \(f(y_1)\) il valore accumulato all'orizzonte \(H\) dopo la variazione di tasso da \(y_0\) a \(y_1\):</p>
+    \[f'(y_0) = 0 \;\text{ quando } D = H \qquad\text{(primo ordine nullo)}\]
+    \[f''(y_0) > 0 \;\text{ per la convessità} \qquad\text{(minimo locale)}\]
+    \[\Rightarrow\quad f(y_1) \geq f(y_0) = L \quad\text{per ogni } y_1 \quad\text{✓ immunizzato}\]
+    <p class="sm mut mt16">Il valore accumulato è una funzione convessa con minimo in \(y_0\), dove vale esattamente \(L\). Per qualsiasi altro tasso, supera il target.</p>
+  </div>
+
+  <div class="calc">
+    <h4>Verifica duration — controlla la condizione D = H</h4>
+    <div class="igrid">
+      <div class="ig"><label>Nominale ($)</label><input id="dc_n" type="number" value="10000000" step="100000"></div>
+      <div class="ig"><label>Cedola annua (%)</label><input id="dc_c" type="number" value="10.125" step="0.125"></div>
+      <div class="ig"><label>YTM annuo (%)</label><input id="dc_y" type="number" value="12.5" step="0.1"></div>
+      <div class="ig"><label>Vita residua (anni)</label><input id="dc_mat" type="number" value="8" step="0.5"></div>
+      <div class="ig"><label>Pagamenti annui</label><input id="dc_p" type="number" value="2" min="1" step="1"></div>
+      <div class="ig"><label>Orizzonte H (anni)</label><input id="dc_h" type="number" value="5.5" step="0.5"></div>
+    </div>
+    <button class="btn" onclick="calcDurationCheck()">Verifica</button>
+    <div id="dc_res"></div>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Valore accumulato a 5.5 anni — curva convessa con minimo in y₀ = 12.5%</div>
+    <canvas id="accumChart"></canvas>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio</div>
+    <h4>Dimostra numericamente che la duration di Macaulay del bond C (10.125%, 8 anni, y = 12.5%) è pari a 11 semestri = 5.5 anni.</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_dur')">Mostra soluzione</button>
+    <div class="sol" id="s_dur">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">Cedola semestrale = 10'000'000 × 5.0625% = 506'250. Semestri totali = 16. \(y_s = 6.25\%\).</div>
+      <div class="step">Prezzo = 506'250 × \(\frac{1-(1.0625)^{-16}}{0.0625}\) + 10'000'000 × \((1.0625)^{-16}\) = 88.20% → $8'820'262.</div>
+      <div class="step">Duration = \(\sum_{t=1}^{16} t \cdot \frac{PV(CF_t)}{Prezzo}\) = <span class="ans">11.0 semestri = 5.5 anni</span> ✓</div>
+      <div class="step">Poiché \(D = H = 11\) semestri, il bond soddisfa la condizione di immunizzazione di Redington.</div>
+    </div>
+  </div>
+
+  <div class="cbox">
+    <h4>Regola pratica per trovare il bond immunizzante</h4>
+    <p class="sm">Dato un orizzonte \(H\), occorre trovare (o costruire) un portafoglio obbligazionario la cui duration di Macaulay sia esattamente uguale a \(H\). Per un singolo bond: la scadenza deve essere <em>maggiore</em> di H (non uguale), con cedola e rendimento tali che la duration risulti \(= H\). Lo zero-coupon bond con scadenza esattamente \(H\) è il caso limite: non ha cedole → nessun rischio reinvestimento.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ 06 RIBILANCIAMENTO -->
+<section class="sec" id="ribilanciamento">
+  <div class="sec-num">06 — Il ribilanciamento</div>
+  <h2>Come mantenere l'immunizzazione nel tempo</h2>
+
+  <p>La condizione \(D = H_{rem}\) deve essere soddisfatta in ogni momento, non solo all'inizio. Due fenomeni la alterano nel tempo:</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>1. Scorrimento del tempo</h4>
+      <p class="sm">Man mano che passano i periodi, l'orizzonte residuo \(H_{rem} = H - t\) si riduce di 1 ogni semestre. La duration del bond si riduce più lentamente (per bond con cedola: scende di meno di 1 per periodo). Si crea un <em>gap</em> \(D > H_{rem}\).</p>
+    </div>
+    <div class="card">
+      <h4>2. Variazione dei tassi</h4>
+      <p class="sm">Se i tassi cambiano, la duration cambia (la convessità non è infinita). Un rialzo dei tassi abbassa la duration; un ribasso la alza. Anche questo crea un gap rispetto a \(H_{rem}\).</p>
+    </div>
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Condizione di ribilanciamento continuo</div>
+    \[D_{bond}(t, y_t) = H - t \quad \text{per ogni } t \in [0, H]\]
+    <p class="sm mut mt16">In pratica: si ribilancia periodicamente (mensile, trimestrale) o quando il gap supera una soglia prefissata.</p>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Duration del bond C vs orizzonte residuo — il gap cresce nel tempo</div>
+    <canvas id="rebalChart"></canvas>
+  </div>
+
+  <div class="sub-h"><h3>Strategia di ribilanciamento</h3></div>
+  <ol>
+    <li>A ogni periodo \(t\), calcola la duration residua del bond \(D_t\) al tasso corrente \(y_t\).</li>
+    <li>Confronta con l'orizzonte residuo \(H_{rem} = H - t\).</li>
+    <li>Se \(D_t \neq H_{rem}\): vendi il bond corrente e acquista un nuovo bond con \(D = H_{rem}\).</li>
+    <li>Il nuovo bond deve essere acquistato a \(A_{new} = \text{(valore di mercato attuale del portafoglio)}\).</li>
+  </ol>
+
+  <div class="calc">
+    <h4>Simulatore di ribilanciamento</h4>
+    <div class="igrid">
+      <div class="ig"><label>Periodo corrente t (sem.)</label><input id="rb_t" type="number" value="2" min="0" max="10" step="1"></div>
+      <div class="ig"><label>Tasso corrente y^a (%)</label><input id="rb_y" type="number" value="12.5" step="0.25"></div>
+      <div class="ig"><label>Valore portafoglio ($)</label><input id="rb_val" type="number" value="8820262" step="10000"></div>
+    </div>
+    <button class="btn" onclick="calcRebal()">Analizza</button>
+    <div id="rb_res"></div>
+  </div>
+
+  <div class="grid2" style="margin-top:24px">
+    <div class="card">
+      <h4>Pro del ribilanciamento frequente</h4>
+      <ul class="sm">
+        <li>Mantiene la condizione \(D = H_{rem}\) sempre soddisfatta</li>
+        <li>Protegge anche da variazioni non parallele della curva</li>
+        <li>Reagisce prontamente ai cambiamenti di mercato</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Contro del ribilanciamento frequente</h4>
+      <ul class="sm">
+        <li>Costi di transazione (bid-ask spread, commissioni)</li>
+        <li>Impatto fiscale sulle plusvalenze</li>
+        <li>Trade-off ottimale: ribilanciare quando il gap supera la soglia di costo</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio</div>
+    <h4>Dopo 2 semestri (t = 2), i tassi salgono al 14% annuo. Il portafoglio detiene ancora bond C (nominale $10M, 10.125%, 6 anni residui). La duration è ancora uguale all'orizzonte residuo di 9 semestri? Come ribilanciare?</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_reb')">Mostra soluzione</button>
+    <div class="sol" id="s_reb">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">Bond C dopo 2 sem.: 14 semestri residui, y_s = 7% (14%/2). Duration = <span id="sol_reb_d">—</span> semestri.</div>
+      <div class="step">Orizzonte residuo: \(H_{rem} = 11 - 2 = 9\) semestri.</div>
+      <div class="step" id="sol_reb_gap">Gap = duration − H_rem = — → ribilanciamento necessario.</div>
+      <div class="step">Calcola il valore di mercato del portafoglio, poi acquista un nuovo bond con \(D = 9\) semestri allo stesso importo.</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>Lezione 07 — L'immunizzazione</span>
+  <span>Fixed Income Analysis · Guida obbligazioni</span>
+</footer>
+</div>
+
+<script>
+/* ──────────────── utility ──────────────── */
+function $(id){ return document.getElementById(id); }
+function n(id){ return parseFloat($(id).value); }
+function fmt(x, d=3){ return Number(x).toFixed(d); }
+function money(x){ return x.toLocaleString('it-CH',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function toggleSol(id){ $(id).classList.toggle('on'); }
+
+const chartOpts = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { labels: { color: '#8a8a89', font: { family: 'Oxygen Mono', size: 11 } } } },
+  scales: {
+    x: { ticks: { color: '#8a8a89', font: { family: 'Oxygen Mono' } }, grid: { color: '#333332' } },
+    y: { ticks: { color: '#8a8a89', font: { family: 'Oxygen Mono' } }, grid: { color: '#333332' } }
+  }
+};
+
+/* ──────────────── bond math ──────────────── */
+function bondPx(N, cSem, n, ys) {
+  const c = N * cSem;
+  if (Math.abs(ys) < 1e-12) return c * n + N;
+  return c * (1 - Math.pow(1+ys, -n)) / ys + N * Math.pow(1+ys, -n);
+}
+
+function macDur(N, cSem, n, ys) {
+  const c = N * cSem;
+  const px = bondPx(N, cSem, n, ys);
+  let num = 0;
+  for (let t = 1; t <= n; t++) {
+    const cf = (t === n) ? (c + N) : c;
+    num += t * cf / Math.pow(1+ys, t);
+  }
+  return num / px;
+}
+
+function modDur(N, cSem, n, ys) {
+  return macDur(N, cSem, n, ys) / (1 + ys);
+}
+
+function accumVal(N, cSem, n, H, y1s) {
+  const c = N * cSem;
+  let reinvest;
+  if (Math.abs(y1s) < 1e-12) {
+    reinvest = c * H;
+  } else {
+    reinvest = c * (Math.pow(1+y1s, H) - 1) / y1s;
+  }
+  let priceH;
+  if (H >= n) {
+    priceH = N;
+  } else {
+    const rem = n - H;
+    if (Math.abs(y1s) < 1e-12) {
+      priceH = c * rem + N;
+    } else {
+      priceH = c * (1 - Math.pow(1+y1s, -rem)) / y1s + N * Math.pow(1+y1s, -rem);
+    }
+  }
+  return reinvest + priceH;
+}
+
+/* bond definitions */
+const INVEST = 8820262;
+const H_SEM  = 11;
+const Y0S    = 0.0625;
+const TARGET = INVEST * Math.pow(1 + Y0S, H_SEM);
+
+const BA = { N: 8820262,  cSem: 0.0625,   n: 11, label: 'Bond A · 12.5% · 5.5Y' };
+const BB = { N: 8820262,  cSem: 0.0625,   n: 30, label: 'Bond B · 12.5% · 15Y'  };
+const BC = { N: 10000000, cSem: 0.050625, n: 16, label: 'Bond C · 10.125% · 8Y' };
+
+function hprAnn(bnd, y1s) {
+  const av = accumVal(bnd.N, bnd.cSem, bnd.n, H_SEM, y1s);
+  return 2 * (Math.pow(av / INVEST, 1 / H_SEM) - 1) * 100;
+}
+
+/* ──────────────── ALM calculator ──────────────── */
+let almChart;
+function initAlmChart() {
+  almChart = new Chart($('almChart'), {
+    type: 'bar',
+    data: {
+      labels: ['ΔA', 'ΔP', 'ΔV'],
+      datasets: [{
+        label: 'Variazione (mio $)',
+        data: [0, 0, 0],
+        backgroundColor: ['#56b4d6', '#d67556', '#6fcf97'],
+        borderColor:      ['#56b4d6', '#d67556', '#6fcf97'],
+        borderWidth: 1
+      }]
+    },
+    options: { ...chartOpts, scales: { x: { ...chartOpts.scales.x }, y: { ...chartOpts.scales.y, beginAtZero: false } } }
+  });
+}
+
+function calcALM() {
+  const A   = n('alm_a') * 1e6;
+  const mdA = n('alm_mda');
+  const P   = n('alm_p') * 1e6;
+  const mdP = n('alm_mdp');
+  const dy  = n('alm_dy') / 100;
+
+  const dA  = -mdA * A * dy;
+  const dP  = -mdP * P * dy;
+  const dV  = dA - dP;
+  const V   = A - P;
+  const Vn  = V + dV;
+
+  const condA = mdA * A;
+  const condP = mdP * P;
+  const immune = Math.abs(condA - condP) < 1e6;
+  const condClr = immune ? 'ok' : 'warn';
+  const condTxt = immune ? 'IMMUNIZZATO ✓' : 'NON immunizzato';
+
+  $('alm_res').innerHTML = `<div class="res">
+    <div class="rrow"><span class="rl">ΔA (var. attivi)</span><span class="rv ${dA<0?'warn':'ok'}">${fmt(dA/1e6,3)} mio $</span></div>
+    <div class="rrow"><span class="rl">ΔP (var. passivi)</span><span class="rv ${dP<0?'warn':'ok'}">${fmt(dP/1e6,3)} mio $</span></div>
+    <div class="rrow"><span class="rl">ΔV = ΔA − ΔP</span><span class="rv big ${dV<0?'warn':'ok'}">${fmt(dV/1e6,3)} mio $</span></div>
+    <div class="rrow"><span class="rl">V prima / dopo</span><span class="rv">${fmt(V/1e6,2)} → ${fmt(Vn/1e6,2)} mio $</span></div>
+    <div class="rrow"><span class="rl">MD·A vs MD·P</span><span class="rv ${condClr}">${fmt(condA/1e6,1)} vs ${fmt(condP/1e6,1)} mio → ${condTxt}</span></div>
+    <div class="rrow"><span class="rl">MD necessaria per immunizzare</span><span class="rv">${fmt(condP/A,3)}</span></div>
+  </div>`;
+
+  almChart.data.datasets[0].data = [dA/1e6, dP/1e6, dV/1e6];
+  almChart.data.datasets[0].backgroundColor = [
+    dA < 0 ? '#d67556' : '#6fcf97',
+    dP < 0 ? '#d67556' : '#6fcf97',
+    dV < 0 ? '#d67556' : '#6fcf97'
+  ];
+  almChart.update();
+}
+
+/* ──────────────── GIC calculator ──────────────── */
+function calcGIC() {
+  const inv = n('gic_inv');
+  const ys  = n('gic_y') / 100;
+  const H   = n('gic_h');
+  const L   = inv * Math.pow(1 + ys, H);
+  const P   = L / Math.pow(1 + ys, H);
+
+  $('gic_res').innerHTML = `<div class="res">
+    <div class="rrow"><span class="rl">Premio investito A</span><span class="rv big">$${money(inv)}</span></div>
+    <div class="rrow"><span class="rl">Rendimento semestrale garantito</span><span class="rv">${(ys*100).toFixed(4)}%</span></div>
+    <div class="rrow"><span class="rl">Orizzonte (semestri)</span><span class="rv">${H}</span></div>
+    <div class="rrow"><span class="rl">Passività a scadenza L = A·(1+y)^H</span><span class="rv big">$${money(L)}</span></div>
+    <div class="rrow"><span class="rl">Check: PV(L) = A</span><span class="rv ok">$${money(P)} ≈ $${money(inv)} ✓</span></div>
+  </div>`;
+}
+
+/* ──────────────── Three bonds comparison ──────────────── */
+let hprChart;
+function initHprChart() {
+  const labels = [], dA = [], dB = [], dC = [];
+  for (let ya = 8; ya <= 17.01; ya += 0.25) {
+    labels.push(ya.toFixed(2) + '%');
+    dA.push(hprAnn(BA, ya/200));
+    dB.push(hprAnn(BB, ya/200));
+    dC.push(hprAnn(BC, ya/200));
+  }
+  hprChart = new Chart($('hprChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Bond A · 12.5% · 5.5Y', data: dA, borderColor: '#d67556', backgroundColor: 'transparent', tension: 0.2, pointRadius: 0 },
+        { label: 'Bond B · 12.5% · 15Y',  data: dB, borderColor: '#56b4d6', backgroundColor: 'transparent', tension: 0.2, pointRadius: 0 },
+        { label: 'Bond C · 10.125% · 8Y', data: dC, borderColor: '#6fcf97', backgroundColor: 'rgba(111,207,151,0.08)', tension: 0.2, pointRadius: 0 },
+        { label: 'Target 12.5%', data: labels.map(() => 12.5), borderColor: '#8a8a89', borderDash: [6, 4], pointRadius: 0 }
+      ]
+    },
+    options: {
+      ...chartOpts,
+      scales: {
+        x: { ...chartOpts.scales.x, ticks: { ...chartOpts.scales.x.ticks, maxTicksLimit: 10 } },
+        y: { ...chartOpts.scales.y, min: 11, max: 15, ticks: { ...chartOpts.scales.y.ticks, callback: v => v.toFixed(1)+'%' } }
+      }
+    }
+  });
+}
+
+function updateComparison() {
+  const ya = parseFloat($('cmp_y').value);
+  const ys = ya / 200;
+  $('cmp_y_v').textContent = ya.toFixed(2) + '%';
+
+  function live(bnd, s) {
+    const av = accumVal(bnd.N, bnd.cSem, bnd.n, H_SEM, ys);
+    const hpr = hprAnn(bnd, ys);
+    const ok  = av >= TARGET - 1;
+    $('lv_'+s).textContent = '$' + money(av);
+    $('lh_'+s).textContent = 'HPR annuo: ' + hpr.toFixed(2) + '%' + (ok ? ' ≥ 12.5% ✓' : ' < 12.5% ✗');
+    const card = $('lc_'+s);
+    if (card) card.style.borderColor = ok ? 'var(--grn)' : 'var(--acc)';
+  }
+  live(BA, 'a');
+  live(BB, 'b');
+  live(BC, 'c');
+}
+
+function buildBondTable(bnd, invest) {
+  const yields = [16,15.5,15,14.5,14,13.5,13,12.5,12,11.5,11,10.5,10,9.5,9,8.5,8];
+  let rows = '';
+  yields.forEach(ya => {
+    const ys   = ya / 200;
+    const c    = bnd.N * bnd.cSem;
+    const nCoupons = H_SEM;
+    const totalCoupons = c * nCoupons;
+    const reinvAmt = Math.abs(ys) < 1e-12 ? c * H_SEM : c * (Math.pow(1+ys, H_SEM) - 1) / ys;
+    const interest = reinvAmt - totalCoupons;
+    let priceH;
+    if (H_SEM >= bnd.n) {
+      priceH = bnd.N;
+    } else {
+      const rem = bnd.n - H_SEM;
+      priceH = c * (1 - Math.pow(1+ys,-rem)) / ys + bnd.N * Math.pow(1+ys,-rem);
+    }
+    const total = reinvAmt + priceH;
+    const hpr   = 2 * (Math.pow(total / invest, 1 / H_SEM) - 1) * 100;
+    const hi    = Math.abs(ya - 12.5) < 0.01;
+    const clr   = total >= TARGET - 1 ? 'ok' : 'warn';
+    rows += `<tr${hi?' class="hi"':''}>
+      <td>${ya.toFixed(2)}%</td>
+      <td>$${money(totalCoupons)}</td>
+      <td>$${money(interest)}</td>
+      <td>$${money(priceH)}</td>
+      <td>$${money(total)}</td>
+      <td class="${clr}">${hpr.toFixed(2)}%</td>
+    </tr>`;
+  });
+  return `<table class="cft">
+    <thead><tr>
+      <th>Nuovo y^a</th><th>Cedole totali</th><th>Interessi reinvest.</th>
+      <th>Prezzo bond</th><th>Valore finale</th><th>HPR annuo</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function showBondTab(which, btn) {
+  ['a','b','c'].forEach(x => {
+    $('bond_table_'+x).style.display = (x === which) ? '' : 'none';
+  });
+  document.querySelectorAll('.bond-tab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+/* ──────────────── Duration check ──────────────── */
+let accumChart;
+function initAccumChart() {
+  accumChart = new Chart($('accumChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Valore accumulato — Bond C', data: [], borderColor: '#6fcf97', backgroundColor: 'rgba(111,207,151,0.08)', tension: 0.2, pointRadius: 0 },
+        { label: 'Target $17\'183\'033', data: [], borderColor: '#8a8a89', borderDash: [6,4], pointRadius: 0 },
+        { label: 'Punto base y₀=12.5%', data: [], type: 'scatter', backgroundColor: '#d67556', pointRadius: 6 }
+      ]
+    },
+    options: {
+      ...chartOpts,
+      scales: {
+        x: { ...chartOpts.scales.x, ticks: { ...chartOpts.scales.x.ticks, maxTicksLimit: 10 } },
+        y: { ...chartOpts.scales.y, ticks: { ...chartOpts.scales.y.ticks, callback: v => '$'+money(v) } }
+      }
+    }
+  });
+  refreshAccumChart();
+}
+
+function refreshAccumChart() {
+  const labels = [], vals = [];
+  for (let ya = 8; ya <= 17.01; ya += 0.25) {
+    labels.push(ya.toFixed(2)+'%');
+    vals.push(accumVal(BC.N, BC.cSem, BC.n, H_SEM, ya/200));
+  }
+  accumChart.data.labels = labels;
+  accumChart.data.datasets[0].data = vals;
+  accumChart.data.datasets[1].data = labels.map(() => TARGET);
+  accumChart.data.datasets[2].data = [{ x: '12.50%', y: TARGET }];
+  accumChart.update();
+}
+
+function calcDurationCheck() {
+  const N    = n('dc_n');
+  const cAnn = n('dc_c') / 100;
+  const yAnn = n('dc_y') / 100;
+  const mat  = n('dc_mat');
+  const freq = n('dc_p');
+  const H    = n('dc_h');
+
+  const cSem = cAnn / freq;
+  const ys   = yAnn / freq;
+  const nP   = Math.round(mat * freq);
+  const HP   = Math.round(H * freq);
+
+  const D    = macDur(N, cSem, nP, ys);
+  const MD   = D / (1 + ys);
+  const px   = bondPx(N, cSem, nP, ys);
+  const diff = D - HP;
+  const ok   = Math.abs(diff) < 0.05;
+
+  $('dc_res').innerHTML = `<div class="res">
+    <div class="rrow"><span class="rl">Prezzo</span><span class="rv">$${money(px)} (${fmt(px/N*100,4)}%)</span></div>
+    <div class="rrow"><span class="rl">Duration di Macaulay</span><span class="rv big">${fmt(D,4)} periodi = ${fmt(D/freq,4)} anni</span></div>
+    <div class="rrow"><span class="rl">Modified duration</span><span class="rv">${fmt(MD,4)} periodi = ${fmt(MD/freq,4)} anni</span></div>
+    <div class="rrow"><span class="rl">Orizzonte H</span><span class="rv">${HP} periodi = ${H} anni</span></div>
+    <div class="rrow"><span class="rl">Gap D − H</span><span class="rv ${ok?'ok':'warn'}">${fmt(diff,4)} periodi</span></div>
+    <div class="rrow"><span class="rl">Condizione immunizzazione</span><span class="rv ${ok?'ok':'warn'}">${ok?'D ≈ H ✓ IMMUNIZZATO':'D ≠ H ✗ non immunizzato'}</span></div>
+  </div>`;
+}
+
+/* ──────────────── Rebalancing chart ──────────────── */
+let rebalChart;
+function initRebalChart() {
+  const labels = [], dDur = [], dHrem = [];
+  for (let t = 0; t <= 10; t++) {
+    labels.push('t=' + t);
+    const rem = BC.n - t;
+    if (rem < 1) { dDur.push(null); } else {
+      dDur.push(macDur(BC.N, BC.cSem, rem, Y0S));
+    }
+    dHrem.push(H_SEM - t);
+  }
+  rebalChart = new Chart($('rebalChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Duration bond C (a y costante)', data: dDur, borderColor: '#6fcf97', backgroundColor: 'rgba(111,207,151,0.1)', tension: 0.2 },
+        { label: 'Orizzonte residuo H_rem', data: dHrem, borderColor: '#d67556', borderDash: [5,4], tension: 0 }
+      ]
+    },
+    options: {
+      ...chartOpts,
+      scales: {
+        x: chartOpts.scales.x,
+        y: { ...chartOpts.scales.y, title: { display: true, text: 'Semestri', color: '#8a8a89', font: { family: 'Oxygen Mono' } } }
+      }
+    }
+  });
+}
+
+function calcRebal() {
+  const t   = parseInt($('rb_t').value);
+  const ya  = n('rb_y') / 100;
+  const ys  = ya / 2;
+  const val = n('rb_val');
+  const Hrem = H_SEM - t;
+
+  const remPeriods = BC.n - t;
+  if (remPeriods <= 0 || Hrem <= 0) {
+    $('rb_res').innerHTML = '<div class="info-box">Orizzonte o vita residua esaurita.</div>';
+    return;
+  }
+
+  const D   = macDur(BC.N, BC.cSem, remPeriods, ys);
+  const MD  = D / (1 + ys);
+  const px  = bondPx(BC.N, BC.cSem, remPeriods, ys);
+  const pxPct = px / BC.N * 100;
+  const gap = D - Hrem;
+  const need = Math.abs(gap) > 0.1;
+
+  $('rb_res').innerHTML = `<div class="res">
+    <div class="rrow"><span class="rl">Periodo corrente t</span><span class="rv">${t} semestri</span></div>
+    <div class="rrow"><span class="rl">Orizzonte residuo H_rem</span><span class="rv">${Hrem} semestri</span></div>
+    <div class="rrow"><span class="rl">Vita residua bond C</span><span class="rv">${remPeriods} semestri</span></div>
+    <div class="rrow"><span class="rl">Prezzo corrente bond C</span><span class="rv">${fmt(pxPct,4)}% → $${money(val)}</span></div>
+    <div class="rrow"><span class="rl">Duration corrente</span><span class="rv">${fmt(D,4)} semestri = ${fmt(D/2,4)} anni</span></div>
+    <div class="rrow"><span class="rl">Gap D − H_rem</span><span class="rv ${need?'warn':'ok'}">${fmt(gap,4)} semestri → ${need?'RIBILANCIAMENTO necessario':'OK, nessun ribilanciamento'}</span></div>
+    ${need ? `<div class="rrow"><span class="rl">Azione</span><span class="rv info">Cerca bond con D = ${Hrem} semestri · prezzo ≈ $${money(val)}</span></div>` : ''}
+  </div>`;
+}
+
+/* ──────────────── nav highlight ──────────────── */
+function initNav() {
+  const links = [...document.querySelectorAll('.nav a')];
+  const map = {};
+  links.forEach(a => map[a.getAttribute('href').slice(1)] = a);
+  const obs = new IntersectionObserver(es => {
+    es.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(a => a.classList.remove('on'));
+        const a = map[e.target.id]; if (a) a.classList.add('on');
+      }
+    });
+  }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
+  document.querySelectorAll('.sec').forEach(s => obs.observe(s));
+}
+
+/* ──────────────── on load ──────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  initAlmChart();
+  calcALM();
+  calcGIC();
+
+  initHprChart();
+  updateComparison();
+
+  $('bond_table_a').innerHTML = buildBondTable(BA, INVEST);
+  $('bond_table_b').innerHTML = buildBondTable(BB, INVEST);
+  $('bond_table_c').innerHTML = buildBondTable(BC, INVEST);
+
+  initAccumChart();
+  calcDurationCheck();
+
+  initRebalChart();
+  calcRebal();
+
+  /* fill exercise solution */
+  const D_sol = macDur(BC.N, BC.cSem, 14, 0.07);
+  const gap_sol = D_sol - 9;
+  const el = $('sol_reb_d');
+  if (el) el.textContent = fmt(D_sol, 3);
+  const el2 = $('sol_reb_gap');
+  if (el2) el2.innerHTML = `Gap = ${fmt(D_sol,3)} − 9 = <span class="ans">${fmt(gap_sol,3)}</span> → ${Math.abs(gap_sol)>0.1 ? '<span class="warn">ribilanciamento necessario</span>' : '<span class="ok">OK</span>'}`;
+
+  initNav();
+});
+</script>
+</body>
+</html>

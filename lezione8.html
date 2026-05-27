@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La gestione attiva — Fixed Income Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Oxygen+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#1f1f1e;--bg1:#272726;--bg2:#2f2f2e;--bg3:#383837;--acc:#d67556;--acc-dim:rgba(214,117,86,.13);--txt:#f0f0ef;--mut:#8a8a89;--bdr:#3a3a39;--grn:#6fcf97;--blu:#56b4d6}
+html{scroll-behavior:smooth}
+body{font-family:'Oxygen Mono',monospace;background:var(--bg);color:var(--txt);line-height:1.8;font-size:13.5px;display:flex;min-height:100vh}
+.sidebar{width:220px;min-width:220px;background:var(--bg1);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sb-brand{padding:24px 20px 20px;border-bottom:1px solid var(--bdr)}
+.sb-course{font-size:9px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.sb-title{font-size:12px;color:var(--txt);line-height:1.5}
+.sb-nav{padding:16px 0;flex:1}
+.sb-section{font-size:9px;color:var(--mut);letter-spacing:.18em;text-transform:uppercase;padding:0 20px;margin-bottom:8px;margin-top:16px}
+.sb-item{display:flex;align-items:flex-start;gap:10px;padding:10px 20px;text-decoration:none;transition:background .15s;cursor:default;position:relative}
+.sb-item.link{cursor:pointer}.sb-item.link:hover{background:var(--bg2)}
+.sb-item.active{background:var(--acc-dim)}.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--acc)}
+.sb-num{font-size:10px;color:var(--mut);min-width:18px;padding-top:1px}.sb-item.active .sb-num{color:var(--acc)}
+.sb-info{flex:1}.sb-name{font-size:11px;color:var(--mut);line-height:1.4}.sb-item.active .sb-name{color:var(--txt)}
+.sb-item.skipped .sb-name{color:var(--bg3)}
+.sb-tag{font-size:9px;margin-top:3px;letter-spacing:.08em}.sb-tag.curr{color:var(--acc)}.sb-tag.skip{color:var(--bg3)}
+.sb-footer{padding:16px 20px;border-top:1px solid var(--bdr);font-size:10px;color:var(--bg3)}
+.content{flex:1;min-width:0;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+.hdr{border-bottom:1px solid var(--bdr);padding:48px 0 36px}.hdr .in{max-width:860px;margin:0 auto;padding:0 40px}.hdr .tag{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px}.hdr h1{font-size:24px;font-weight:400;line-height:1.3}.hdr .sub{color:var(--mut);font-size:11px;margin-top:6px}
+.nav{position:sticky;top:0;z-index:100;background:rgba(31,31,30,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr);overflow-x:auto}.nav .in{max-width:860px;margin:0 auto;padding:0 28px;display:flex}.nav a{display:block;padding:13px 12px;font-size:10px;color:var(--mut);text-decoration:none;letter-spacing:.08em;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}.nav a:hover,.nav a.on{color:var(--acc);border-bottom-color:var(--acc)}
+main{max-width:860px;margin:0 auto;padding:0 40px 80px;flex:1}.sec{padding:60px 0 48px;border-bottom:1px solid var(--bdr)}.sec:last-child{border-bottom:none}.sec-num{font-size:10px;color:var(--acc);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}.sec h2{font-size:19px;font-weight:400;margin-bottom:22px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.sub-h{margin-top:28px}.sub-h h3{font-size:10px;color:var(--acc);font-weight:400;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+p{margin-bottom:10px}ul,ol{padding-left:18px;margin-bottom:10px}li{margin-bottom:3px}strong{color:var(--acc);font-weight:400}em{color:var(--blu);font-style:normal}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:18px 20px}.card h4{font-size:10px;color:var(--acc);letter-spacing:.1em;text-transform:uppercase;font-weight:400;margin-bottom:10px}
+.fmla{background:var(--bg1);border-left:3px solid var(--acc);border-radius:0 4px 4px 0;padding:18px 22px;margin:18px 0;overflow-x:auto}.fmla .fmla-ttl{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px}.fleg{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);font-size:11.5px;color:var(--mut);line-height:2}.fleg span{margin-right:14px}
+.calc{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}.calc h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:18px}.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px;margin-bottom:18px}.ig{display:flex;flex-direction:column;gap:5px}.ig label{font-size:11px;color:var(--mut)}.ig input,.ig select{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:8px 10px;color:var(--txt);font-family:'Oxygen Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;width:100%}.ig input:focus,.ig select:focus{border-color:var(--acc)}
+.btn{background:var(--acc);color:var(--bg);border:none;border-radius:3px;padding:9px 22px;font-family:'Oxygen Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:.05em;transition:opacity .2s}.btn:hover{opacity:.85}.btn-sm{padding:5px 14px;font-size:11px}
+.res{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:14px 18px;margin-top:14px}.rrow{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--bdr);gap:20px}.rrow:last-child{border-bottom:none}.rl{color:var(--mut);font-size:11.5px}.rv{color:var(--txt);font-size:14px;text-align:right}.rv.big{color:var(--acc);font-size:18px}
+.cft{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}.cft th{text-align:right;padding:7px 12px;color:var(--mut);border-bottom:1px solid var(--bdr);font-weight:400;font-size:10.5px;letter-spacing:.05em}.cft th:first-child{text-align:left}.cft td{text-align:right;padding:6px 12px;border-bottom:1px solid var(--bdr)}.cft td:first-child{text-align:left;color:var(--mut)}.cft tr.hi td{color:var(--acc);font-weight:600}
+.rtab{width:100%;border-collapse:collapse;margin:14px 0;font-size:12.5px}.rtab th{padding:9px 13px;background:var(--bg2);border:1px solid var(--bdr);color:var(--mut);font-weight:400;font-size:10.5px;letter-spacing:.07em;text-align:left}.rtab td{padding:9px 13px;border:1px solid var(--bdr)}.rtab tr:nth-child(even) td{background:var(--bg1)}.rtab tr.hi td{color:var(--acc);font-weight:600}
+.chw{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}.chw canvas{max-height:340px}.ch-ttl{font-size:10px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+.sg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}.sg label{font-size:11px;color:var(--mut)}.srow{display:flex;align-items:center;gap:12px}input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--bdr);border-radius:2px;outline:none}input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;background:var(--acc);border-radius:50%;cursor:pointer}.sv{min-width:70px;text-align:right;color:var(--acc);font-size:12.5px}
+.ex{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:22px;margin:22px 0}.ex-lbl{font-size:10px;color:var(--blu);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}.ex h4{font-size:13px;font-weight:400;margin-bottom:10px}.sol{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)}.sol.on{display:block}.sol-lbl{font-size:10px;color:var(--grn);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px}.step{margin-bottom:7px;padding:6px 12px;border-left:2px solid var(--grn);font-size:12.5px}.step .ans{color:var(--grn);font-size:14px}
+.cbox{border:1px solid var(--acc);border-radius:4px;padding:14px 18px;margin:18px 0;background:var(--acc-dim)}.cbox h4{font-size:10px;color:var(--acc);letter-spacing:.15em;text-transform:uppercase;font-weight:400;margin-bottom:8px}
+.ok{color:var(--grn)}.warn{color:var(--acc)}.info{color:var(--blu)}.mt16{margin-top:16px}.mt24{margin-top:24px}.sm{font-size:12px}.mut{color:var(--mut)}.acc{color:var(--acc)}.grn{color:var(--grn)}.blu{color:var(--blu)}.info-box{border-left:2px solid var(--blu);padding:8px 14px;margin:12px 0;font-size:12.5px;color:var(--mut)}
+/* ── Risk factor tree ── */
+.rt-wrap{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:28px 22px;margin:22px 0;overflow-x:auto}
+.rt-tree{display:flex;flex-direction:column;align-items:center;gap:0;min-width:540px}
+.rt-root{background:var(--acc);color:var(--bg);border-radius:3px;padding:7px 22px;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+.rt-vline{width:1px;height:20px;background:var(--bdr)}
+.rt-hrow{display:flex;align-items:flex-start;gap:0}
+.rt-hline{height:1px;background:var(--bdr);min-width:50px;margin-top:15px}
+.rt-col{display:flex;flex-direction:column;align-items:center;gap:0}
+.rt-node{border:1px solid;border-radius:3px;padding:6px 16px;font-size:10.5px;text-align:center;white-space:nowrap}
+.rt-node.sys{border-color:var(--grn);color:var(--grn)}
+.rt-node.spe{border-color:var(--blu);color:var(--blu)}
+.rt-node.sub{border-color:var(--acc);color:var(--acc);font-size:10px}
+.rt-node.leaf{border-color:var(--bdr);color:var(--mut);font-size:10px;padding:4px 10px}
+.rt-lrow{display:flex;gap:8px;margin-top:20px}
+.rt-vline-sm{width:1px;height:14px;background:var(--bdr)}
+/* ── Fund card ── */
+.fund-card{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:20px 22px;margin:16px 0}
+.fund-card .fc-title{font-size:13px;color:var(--txt);margin-bottom:4px}
+.fund-card .fc-sub{font-size:10px;color:var(--mut);margin-bottom:16px}
+.fund-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.fund-stat{background:var(--bg2);border:1px solid var(--bdr);border-radius:3px;padding:8px 12px}
+.fund-stat .fs-lbl{font-size:9px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px}
+.fund-stat .fs-val{font-size:14px;color:var(--acc)}
+/* ── Strategy badges ── */
+.strat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.strat-card{background:var(--bg1);border:1px solid var(--bdr);border-radius:4px;padding:16px 18px}
+.strat-card h4{font-size:10px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+.strat-card.timing h4{color:var(--acc)}.strat-card.selection h4{color:var(--blu)}
+.strat-item{margin-bottom:8px;padding-left:10px;border-left:2px solid var(--bdr);font-size:12px}
+.strat-item strong{color:var(--txt)}
+footer{max-width:860px;margin:0 auto;padding:22px 40px;border-top:1px solid var(--bdr);font-size:11px;color:var(--mut);display:flex;justify-content:space-between;width:100%;gap:20px}@media(max-width:860px){body{display:block}.sidebar{position:relative;width:100%;height:auto}.content{display:block}footer{display:block}.hdr .in,main{padding-left:24px;padding-right:24px}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-course">Fixed Income Analysis</div>
+    <div class="sb-title">Guida obbligazioni</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Lezioni</div>
+    <div class="sb-item skipped"><span class="sb-num">01</span><div class="sb-info"><div class="sb-name">Introduzione ai mercati obbligazionari</div><div class="sb-tag skip">— saltata —</div></div></div>
+    <a class="sb-item link" href="bond-pricing.html"><span class="sb-num">02</span><div class="sb-info"><div class="sb-name">Il Pricing delle Obbligazioni</div></div></a>
+    <a class="sb-item link" href="lezione3.html"><span class="sb-num">03</span><div class="sb-info"><div class="sb-name">Il Rendimento dell'Investimento</div></div></a>
+    <a class="sb-item link" href="lezione4.html"><span class="sb-num">04</span><div class="sb-info"><div class="sb-name">La Struttura a Termine</div></div></a>
+    <a class="sb-item link" href="lezione5.html"><span class="sb-num">05</span><div class="sb-info"><div class="sb-name">Teorie della Curva Spot</div></div></a>
+    <a class="sb-item link" href="lezione6.html"><span class="sb-num">06</span><div class="sb-info"><div class="sb-name">Il Rischio di Tasso</div></div></a>
+    <a class="sb-item link" href="lezione7.html"><span class="sb-num">07</span><div class="sb-info"><div class="sb-name">L'immunizzazione</div></div></a>
+    <div class="sb-item active"><span class="sb-num">08</span><div class="sb-info"><div class="sb-name">La gestione attiva</div><div class="sb-tag curr">in corso</div></div></div>
+  </nav>
+  <div class="sb-footer">Fixed Income Analysis</div>
+</aside>
+
+<div class="content">
+
+<header class="hdr">
+  <div class="in">
+    <div class="tag">Lezione 08 · Fixed Income Analysis</div>
+    <h1>La gestione attiva<br>dei portafogli obbligazionari</h1>
+    <div class="sub">Politica d'investimento · Tracking error · Fattori di rischio · Market Timing · Security Selection · IRA</div>
+  </div>
+</header>
+
+<nav class="nav"><div class="in">
+  <a href="#politica">Politica</a>
+  <a href="#attiva">Gestione attiva</a>
+  <a href="#fattori">Fattori di rischio</a>
+  <a href="#timing">Market Timing</a>
+  <a href="#selection">Security Selection</a>
+  <a href="#ira">IRA</a>
+</div></nav>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════════ 01 POLITICA -->
+<section class="sec" id="politica">
+  <div class="sec-num">01 — La politica d'investimento</div>
+  <h2>Ogni investitore definisce obiettivi e tipologia di gestione</h2>
+
+  <p>L'investitore definisce la propria <strong>politica d'investimento</strong> in funzione degli obiettivi e dei vincoli. La scelta tra gestione passiva e attiva dipende da questi stessi obiettivi.</p>
+
+  <table class="rtab">
+    <tr><th>Investitore</th><th>Obiettivo principale</th><th>Tipologia tipica</th></tr>
+    <tr><td>Cassa pensione / Assicurazione</td><td>Far fronte agli impegni (rendite/indennizzi) generando utile d'esercizio</td><td>ALM / immunizzazione</td></tr>
+    <tr><td>Banca</td><td>Rendimento superiore al costo del finanziamento</td><td>Passiva o attiva</td></tr>
+    <tr><td>Fondo d'investimento</td><td>Replicare o battere il portafoglio di riferimento</td><td>Passiva (index) o attiva</td></tr>
+  </table>
+
+  <div class="grid3" style="margin-top:20px">
+    <div class="card">
+      <h4>ALM / Immunizzazione</h4>
+      <p class="sm">Eliminare il rischio di tasso: \(D_A = H\). Vista in lezione 07.</p>
+    </div>
+    <div class="card">
+      <h4>Gestione passiva</h4>
+      <p class="sm">Indicizzazione o buy-and-hold. Replica fedele del benchmark. TE ≈ 0.</p>
+    </div>
+    <div class="card">
+      <h4>Gestione attiva</h4>
+      <p class="sm">Battere il benchmark assumendo esposizioni ai fattori di rischio diverse. TE &gt; 0.</p>
+    </div>
+  </div>
+
+  <div class="sub-h"><h3>Caso reale: Raiffeisen Futura Swiss Franc Bond</h3></div>
+  <p>Fondo obbligazionario a <strong>gestione attiva</strong> su obbligazioni CHF con criteri ESG. Benchmark: <em>SBI® AAA-BBB Total Return Swiss Bond Index</em>. Gestito da Vontobel Asset Management AG, Zurigo.</p>
+
+  <div class="fund-card">
+    <div class="fc-title">Raiffeisen Futura Swiss Franc Bond — dati al 31.10.2018</div>
+    <div class="fc-sub">TER 0.76% · Patrimonio CHF 535.6 mio · ISIN CH0011980999</div>
+    <div class="fund-stats">
+      <div class="fund-stat"><div class="fs-lbl">Volatilità (3Y ann.)</div><div class="fs-val">2.38%</div></div>
+      <div class="fund-stat"><div class="fs-lbl">Sharpe Ratio</div><div class="fs-val">0.05</div></div>
+      <div class="fund-stat"><div class="fs-lbl">Tracking Error</div><div class="fs-val">0.40%</div></div>
+      <div class="fund-stat"><div class="fs-lbl">Jensen Alpha</div><div class="fs-val warn">-0.39%</div></div>
+      <div class="fund-stat"><div class="fs-lbl">Beta</div><div class="fs-val">0.88</div></div>
+      <div class="fund-stat"><div class="fs-lbl">Modified Duration</div><div class="fs-val">6.37</div></div>
+      <div class="fund-stat"><div class="fs-lbl">Durata media residua</div><div class="fs-val">6.69Y</div></div>
+      <div class="fund-stat"><div class="fs-lbl">YTM</div><div class="fs-val">0.19%</div></div>
+      <div class="fund-stat"><div class="fs-lbl">Cedola media</div><div class="fs-val">1.21%</div></div>
+      <div class="fund-stat"><div class="fs-lbl">SRRI</div><div class="fs-val">3</div></div>
+    </div>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Performance storica — Fondo vs Benchmark SBI AAA-BBB</div>
+    <canvas id="perfChart"></canvas>
+  </div>
+
+  <div class="info-box">Il fondo ha sistematicamente sottoperformato il benchmark: nel periodo dall'inizio, +44.3% vs +65.3% dell'indice. Jensen Alpha = -0.39% indica rendimento inferiore alle attese sul rischio assunto.</div>
+
+  <div class="sub-h"><h3>Il Benchmark: Swiss Bond Index AAA-BBB</h3></div>
+  <table class="rtab">
+    <tr><th>Metrica</th><th>SBI Total AAA-BBB</th><th>Fondo Raiffeisen</th></tr>
+    <tr><td>Macaulay Duration</td><td>7.64</td><td>6.69</td></tr>
+    <tr><td>Modified Duration</td><td>7.62</td><td>6.37</td></tr>
+    <tr><td>Rendimento (YTM)</td><td>0.24%</td><td>0.19%</td></tr>
+  </table>
+  <div class="grid2">
+    <div class="card">
+      <h4>Composizione per segmento</h4>
+      <p class="sm">Domestic Non-Govt 56.6% · Domestic Swiss Govt 16.0%<br>Foreign Corp 19.0% · Foreign Govt 6.0% · Supranational 3.0%</p>
+    </div>
+    <div class="card">
+      <h4>Composizione per rating</h4>
+      <p class="sm">AAA 52.7% · AA 22.6% · A 14.1% · BBB 10.6%</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ 02 GESTIONE ATTIVA -->
+<section class="sec" id="attiva">
+  <div class="sec-num">02 — La gestione attiva</div>
+  <h2>Battere il benchmark assumendo esposizioni ai fattori di rischio diverse</h2>
+
+  <p>La gestione attiva mira a conseguire un <strong>extra rendimento</strong> rispetto al benchmark. Questo è possibile solo se:</p>
+  <ul>
+    <li>Il mercato <strong>non è perfettamente efficiente</strong> (i prezzi non incorporano subito tutte le informazioni)</li>
+    <li>Il gestore dispone di <strong>informazioni o analisi migliori</strong> rispetto al mercato, che quest'ultimo incorporerà in futuro</li>
+  </ul>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Il meccanismo della gestione attiva</div>
+    \[R_{active} = R_P - R_B\]
+    <p class="sm mut mt16">Il gestore si scosta dal benchmark assumendo esposizioni ai fattori di rischio diverse (beta diverso):</p>
+    \[\underbrace{TE}_{\text{tracking error}} = \sigma(R_P - R_B) > 0\]
+    <div class="fleg">
+      <span>\(R_P\) = rendimento portafoglio</span>
+      <span>\(R_B\) = rendimento benchmark</span>
+      <span>\(TE\) = deviazione standard del rendimento attivo</span>
+    </div>
+  </div>
+
+  <div class="sub-h"><h3>Metriche di valutazione della gestione attiva</h3></div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Formule principali</div>
+    \[\text{Sharpe Ratio} = \frac{R_P - R_f}{\sigma_P}\]
+    \[\text{Jensen Alpha} = \alpha = R_P - \left[R_f + \beta(R_B - R_f)\right]\]
+    \[\text{Information Ratio} = IR = \frac{R_P - R_B}{TE} = \frac{\bar{R}_{active}}{TE}\]
+    <div class="fleg">
+      <span>\(R_f\) = tasso risk-free</span>
+      <span>\(\beta\) = esposizione sistematica al benchmark</span>
+      <span>\(TE\) = tracking error</span>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore metriche di performance</h4>
+    <div class="igrid">
+      <div class="ig"><label>Rendimento portafoglio R_P (%)</label><input id="pm_rp" type="number" value="-0.7" step="0.1"></div>
+      <div class="ig"><label>Rendimento benchmark R_B (%)</label><input id="pm_rb" type="number" value="-0.2" step="0.1"></div>
+      <div class="ig"><label>Tasso risk-free R_f (%)</label><input id="pm_rf" type="number" value="-0.8" step="0.1"></div>
+      <div class="ig"><label>Volatilità portafoglio σ_P (%)</label><input id="pm_vol" type="number" value="2.38" step="0.1"></div>
+      <div class="ig"><label>Tracking Error TE (%)</label><input id="pm_te" type="number" value="0.40" step="0.05"></div>
+      <div class="ig"><label>Beta β</label><input id="pm_beta" type="number" value="0.88" step="0.01"></div>
+    </div>
+    <button class="btn" onclick="calcPerf()">Calcola</button>
+    <div id="pm_res"></div>
+  </div>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio — dati Raiffeisen (3Y annualizzati)</div>
+    <h4>Con R_P = -0.7%, R_B = -0.2%, R_f = -0.8%, σ_P = 2.38%, TE = 0.40%, β = 0.88, calcola Sharpe Ratio, Jensen Alpha e Information Ratio.</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_perf')">Mostra soluzione</button>
+    <div class="sol" id="s_perf">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">Sharpe Ratio = \((-0.7\% - (-0.8\%))/2.38\% = 0.1\%/2.38\% = \)<span class="ans">0.042 ≈ 0.05</span> ✓</div>
+      <div class="step">Jensen Alpha = \(-0.7\% - [-0.8\% + 0.88 \times (-0.2\% - (-0.8\%))]\)</div>
+      <div class="step">= \(-0.7\% - [-0.8\% + 0.88 \times 0.6\%] = -0.7\% - [-0.8\% + 0.528\%] = -0.7\% - (-0.272\%) = \)<span class="ans">-0.428% ≈ -0.39%</span> ✓</div>
+      <div class="step">Information Ratio = \((-0.7\% - (-0.2\%))/0.40\% = -0.5\%/0.40\% = \)<span class="ans">-1.25</span> (gestione distruttiva di valore)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ 03 FATTORI DI RISCHIO -->
+<section class="sec" id="fattori">
+  <div class="sec-num">03 — Fattori di rischio di un portafoglio obbligazionario</div>
+  <h2>Specifici vs Sistematici: la mappa dei rischi</h2>
+
+  <p>Per gestire attivamente un portafoglio occorre identificare e modificare intenzionalmente l'esposizione ai <strong>fattori di rischio</strong> rispetto al benchmark. Si stima il Tracking Error futuro sulla base della correlazione storica tra i fattori.</p>
+
+  <div class="rt-wrap">
+    <div class="rt-tree">
+      <div class="rt-root">Fattori di rischio</div>
+      <div class="rt-vline"></div>
+      <div class="rt-hrow">
+        <div style="width:50px;height:1px;background:var(--bdr);margin-top:15px"></div>
+        <div class="rt-col">
+          <div class="rt-node spe">Specifici</div>
+          <div class="rt-vline"></div>
+          <div class="rt-lrow">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+              <div class="rt-vline-sm"></div>
+              <div class="rt-node leaf">Emittente</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+              <div class="rt-vline-sm"></div>
+              <div class="rt-node leaf">Titolo</div>
+            </div>
+          </div>
+        </div>
+        <div style="width:60px;height:1px;background:var(--bdr);margin-top:15px"></div>
+        <div class="rt-col">
+          <div class="rt-node sys">Sistematici</div>
+          <div class="rt-vline"></div>
+          <div class="rt-lrow">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+              <div class="rt-vline-sm"></div>
+              <div class="rt-node sub">Non term structure</div>
+              <div class="rt-vline-sm"></div>
+              <div class="rt-lrow">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:0"><div class="rt-vline-sm"></div><div class="rt-node leaf">Settore</div></div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:0"><div class="rt-vline-sm"></div><div class="rt-node leaf">Rating</div></div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:0"><div class="rt-vline-sm"></div><div class="rt-node leaf">Cedole</div></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+              <div class="rt-vline-sm"></div>
+              <div class="rt-node sub">Term structure</div>
+            </div>
+          </div>
+        </div>
+        <div style="width:50px;height:1px;background:var(--bdr);margin-top:15px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h4 class="blu">Rischi Specifici</h4>
+      <p class="sm"><strong>Emittente:</strong> solidità finanziaria, probabilità di default, variazioni del rating.</p>
+      <p class="sm"><strong>Titolo:</strong> caratteristiche specifiche del bond (opzioni call/put, liquidità, struttura cedolare).</p>
+      <p class="sm">Possono essere ridotti con la <em>diversificazione</em>.</p>
+    </div>
+    <div class="card">
+      <h4 class="grn">Rischi Sistematici</h4>
+      <p class="sm"><strong>Term structure:</strong> spostamenti paralleli, rotazioni e torsioni della curva dei tassi (duration, convexity).</p>
+      <p class="sm"><strong>Non term structure — Settore:</strong> spread settoriali (governo vs corporate vs covered).</p>
+      <p class="sm"><strong>Non term structure — Rating:</strong> spread di credito per classe di rischio.</p>
+      <p class="sm"><strong>Non term structure — Cedole:</strong> differenze di prezzo legate alla struttura cedolare.</p>
+    </div>
+  </div>
+
+  <div class="cbox">
+    <h4>Sulla base dei fattori di rischio si costruisce il portafoglio attivo</h4>
+    <p class="sm">Si stima la correlazione storica tra i fattori di rischio e le esposizioni del portafoglio rispetto al benchmark. Questo permette di stimare il <strong>Tracking Error futuro</strong> e capire quali scommesse pesano di più sul rischio relativo.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ 04 MARKET TIMING -->
+<section class="sec" id="timing">
+  <div class="sec-num">04 — Market Timing</div>
+  <h2>Variare l'esposizione ai fattori di rischio in funzione delle previsioni</h2>
+
+  <p>Il <strong>Market Timing</strong> (o Market Selection) consiste nel modificare intenzionalmente l'esposizione del portafoglio ai fattori di rischio sistematici rispetto al benchmark, nella convinzione di avere previsioni migliori del mercato.</p>
+
+  <div class="strat-grid">
+    <div class="strat-card timing">
+      <h4>Interest Rate Anticipation</h4>
+      <div class="strat-item"><strong>Obiettivo:</strong> prevedere il movimento della curva dei rendimenti e modificare la duration del portafoglio di conseguenza.</div>
+      <div class="strat-item"><strong>Se tassi attesi in calo:</strong> allungare la duration → guadagno da apprezzamento dei prezzi.</div>
+      <div class="strat-item"><strong>Se tassi attesi in rialzo:</strong> accorciare la duration → limitare le perdite da prezzo.</div>
+    </div>
+    <div class="strat-card timing">
+      <h4>Yield Spread Analysis</h4>
+      <div class="strat-item"><strong>Obiettivo:</strong> sfruttare l'ampliamento o la convergenza degli spread tra settori.</div>
+      <div class="strat-item"><strong>Se lo spread è eccessivo:</strong> acquistare il settore con YTM più alto, vendere allo scoperto quello con YTM più basso.</div>
+      <div class="strat-item"><strong>Guadagno atteso</strong> dalla convergenza dello spread.</div>
+    </div>
+    <div class="strat-card timing">
+      <h4>Tassi di cambio</h4>
+      <div class="strat-item"><strong>Obiettivo:</strong> riallocare verso valute che si ritiene si apprezzeranno.</div>
+      <div class="strat-item"><strong>Rischio:</strong> aggiunge volatilità valutaria al portafoglio. Richiede previsioni accurate sul mercato FX.</div>
+    </div>
+    <div class="strat-card selection">
+      <h4>Convexity / Duration Bet</h4>
+      <div class="strat-item"><strong>Obiettivo:</strong> modificare non solo la duration ma anche la convessità (curva non parallela).</div>
+      <div class="strat-item"><strong>Barbell vs Bullet:</strong> portafoglio concentrato su scadenze estreme (barbell) vs scadenza unica (bullet).</div>
+    </div>
+  </div>
+
+  <div class="sub-h"><h3>Calcolatore Yield Spread</h3></div>
+  <p>Se si prevede la convergenza dello spread tra due settori, il guadagno atteso è approssimato da:</p>
+  <div class="fmla">
+    <div class="fmla-ttl">Guadagno da convergenza spread</div>
+    \[\Delta R_{spread} \approx -D_{settore} \cdot \Delta spread\]
+    <div class="fleg">
+      <span>\(D_{settore}\) = duration del settore acquistato</span>
+      <span>\(\Delta spread\) = variazione attesa dello spread (negativa se converge)</span>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Calcolatore Yield Spread Analysis</h4>
+    <div class="igrid">
+      <div class="ig"><label>YTM settore A (%)</label><input id="sp_ya" type="number" value="2.5" step="0.1"></div>
+      <div class="ig"><label>YTM settore B / gov (%)</label><input id="sp_yb" type="number" value="0.5" step="0.1"></div>
+      <div class="ig"><label>Duration settore A (anni)</label><input id="sp_da" type="number" value="6" step="0.5"></div>
+      <div class="ig"><label>Duration settore B (anni)</label><input id="sp_db" type="number" value="6" step="0.5"></div>
+      <div class="ig"><label>Convergenza attesa (bp)</label><input id="sp_conv" type="number" value="50" step="10"></div>
+    </div>
+    <button class="btn" onclick="calcSpread()">Calcola</button>
+    <div id="sp_res"></div>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Guadagno atteso da convergenza spread — al variare del Δspread</div>
+    <canvas id="spreadChart"></canvas>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ 05 SECURITY SELECTION -->
+<section class="sec" id="selection">
+  <div class="sec-num">05 — Security Selection</div>
+  <h2>Trovare obbligazioni mispriced rispetto al loro profilo di rischio</h2>
+
+  <p>La <strong>Security Selection</strong> (bond swap) consiste nell'identificare singole obbligazioni non prezzate correttamente rispetto ai loro fondamentali e scambiare titoli correttamente prezzati con quelli sottovalutati, mantenendo invariati i fattori di rischio sistematici del portafoglio.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h4 class="blu">Valuation Analysis</h4>
+      <p class="sm">In base alle caratteristiche del bond (rating, scadenza, settore, struttura cedolare) si determina il <strong>giusto spread</strong> rispetto alla curva benchmark.</p>
+      <p class="sm">Si acquistano i bond il cui YTM è <em>eccessivo rispetto al rischio</em> (sottovalutati) e si vendono quelli con YTM insufficiente (sopravvalutati).</p>
+      <p class="sm acc">Guadagno: convergenza dello yield al fair value.</p>
+    </div>
+    <div class="card">
+      <h4 class="blu">Credit Analysis</h4>
+      <p class="sm">Si analizza la <strong>congiuntura macroeconomica</strong> e la situazione finanziaria dell'emittente per prevedere l'evoluzione del rating.</p>
+      <p class="sm">Si investite in debitori il cui <em>rating è atteso in miglioramento</em> (upgrade) prima che il mercato lo incorpori nel prezzo.</p>
+      <p class="sm acc">Guadagno: riduzione dello spread al momento dell'upgrade.</p>
+    </div>
+  </div>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Guadagno da un bond swap (valuation)</div>
+    \[\Delta R_{swap} \approx -D_{bond} \cdot \Delta spread_{bond}\]
+    <p class="sm mut mt16">Dove \(\Delta spread_{bond}\) è la variazione attesa dello spread del titolo rispetto alla curva di riferimento (negativa se converge verso il fair value).</p>
+  </div>
+
+  <div class="calc">
+    <h4>Bond Swap — Analisi del valore relativo</h4>
+    <p class="sm mut" style="margin-bottom:14px">Confronta due bond con stesso rating e duration simile. Quello con Z-spread più alto è relativamente sottovalutato.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <p class="sm acc" style="margin-bottom:8px">Bond 1 (da acquistare?)</p>
+        <div class="igrid" style="grid-template-columns:1fr 1fr">
+          <div class="ig"><label>Cedola annua (%)</label><input id="sw1_c" type="number" value="3.0" step="0.25"></div>
+          <div class="ig"><label>Vita residua (Y)</label><input id="sw1_n" type="number" value="8" step="0.5"></div>
+          <div class="ig"><label>Prezzo (%)</label><input id="sw1_px" type="number" value="95.0" step="0.1"></div>
+        </div>
+      </div>
+      <div>
+        <p class="sm blu" style="margin-bottom:8px">Bond 2 (da vendere?)</p>
+        <div class="igrid" style="grid-template-columns:1fr 1fr">
+          <div class="ig"><label>Cedola annua (%)</label><input id="sw2_c" type="number" value="2.5" step="0.25"></div>
+          <div class="ig"><label>Vita residua (Y)</label><input id="sw2_n" type="number" value="8" step="0.5"></div>
+          <div class="ig"><label>Prezzo (%)</label><input id="sw2_px" type="number" value="97.0" step="0.1"></div>
+        </div>
+      </div>
+    </div>
+    <div class="igrid" style="margin-top:12px">
+      <div class="ig"><label>Yield benchmark (%) — stesso rating/duration</label><input id="sw_bm" type="number" value="2.0" step="0.1"></div>
+    </div>
+    <button class="btn" onclick="calcSwap()">Analizza</button>
+    <div id="sw_res"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ 06 IRA -->
+<section class="sec" id="ira">
+  <div class="sec-num">06 — Interest Rate Anticipation</div>
+  <h2>Scommettere sulla curva dei rendimenti modificando la duration</h2>
+
+  <p>L'<strong>Interest Rate Anticipation (IRA)</strong> è la strategia di market timing più diretta: si modifica la <em>duration del portafoglio</em> rispetto al benchmark per trarre vantaggio dal movimento atteso della curva dei rendimenti.</p>
+
+  <div class="fmla">
+    <div class="fmla-ttl">Extra rendimento atteso dalla scommessa sulla duration</div>
+    \[\Delta R_{active} \approx -(D_P - D_B) \cdot \Delta y_{realized}\]
+    \[\underbrace{(D_P - D_B)}_{\text{duration gap}} \cdot (-\Delta y_{expected}) = \text{extra rendimento atteso}\]
+    <div class="fleg">
+      <span>\(D_P\) = duration portafoglio</span>
+      <span>\(D_B\) = duration benchmark</span>
+      <span>\(\Delta y\) = variazione effettiva dei tassi</span>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h4 class="grn">Allungare la duration — se si prevede calo dei tassi</h4>
+      <p class="sm">\(D_P > D_B\): gap positivo. Se i tassi scendono (\(\Delta y < 0\)), il portafoglio guadagna più del benchmark.</p>
+      <p class="sm warn">Rischio: se i tassi salgono, il portafoglio perde più del benchmark.</p>
+    </div>
+    <div class="card">
+      <h4 class="warn">Accorciare la duration — se si prevede rialzo dei tassi</h4>
+      <p class="sm">\(D_P < D_B\): gap negativo. Se i tassi salgono (\(\Delta y > 0\)), il portafoglio perde meno del benchmark.</p>
+      <p class="sm warn">Rischio: se i tassi scendono, il portafoglio guadagna meno del benchmark.</p>
+    </div>
+  </div>
+
+  <div class="calc">
+    <h4>Simulatore IRA — Scommessa sulla duration</h4>
+    <div class="igrid">
+      <div class="ig"><label>Duration benchmark D_B (anni)</label><input id="ira_db" type="number" value="7.62" step="0.1"></div>
+      <div class="ig"><label>Duration portafoglio D_P (anni)</label><input id="ira_dp" type="number" value="9.0" step="0.1"></div>
+      <div class="ig"><label>Variazione tasso attesa Δy (%)</label><input id="ira_dy" type="number" value="-1.0" step="0.1"></div>
+    </div>
+    <button class="btn" onclick="calcIRA()">Calcola</button>
+    <div id="ira_res"></div>
+  </div>
+
+  <div class="sg" style="margin-top:20px">
+    <label>Duration gap (D_P − D_B) per il grafico</label>
+    <div class="srow">
+      <input id="ira_gap_sl" type="range" min="-5" max="5" value="1.38" step="0.5" oninput="updateIRAChart()">
+      <span class="sv" id="ira_gap_v">+1.38Y</span>
+    </div>
+  </div>
+
+  <div class="chw">
+    <div class="ch-ttl">Extra rendimento attivo vs variazione tasso realizzata — per diversi gap di duration</div>
+    <canvas id="iraChart"></canvas>
+  </div>
+
+  <div class="sub-h"><h3>Orizzonte di investimento medio-lungo</h3></div>
+  <p>Con un orizzonte più lungo, la scommessa sulla curva dipende da:</p>
+  <ul>
+    <li><strong>Previsioni sul tasso di reinvestimento</strong> di ogni cedola durante il periodo</li>
+    <li><strong>Previsioni sulla curva dei rendimenti alla fine</strong> del periodo (prezzi di uscita)</li>
+  </ul>
+  <p>In questo caso il valore finale del portafoglio dipende dalla correttezza delle previsioni sia sui tassi futuri brevi (reinvestimento cedole) che su quelli a fine periodo (prezzatura bond residui).</p>
+
+  <div class="ex">
+    <div class="ex-lbl">Esercizio dal PDF</div>
+    <h4>Il portafoglio ha duration 9.0 anni, il benchmark SBI AAA-BBB ha MD = 7.62 anni. Si prevede un calo dei tassi di 50bp nell'anno. Calcola l'extra rendimento atteso e il rischio se la previsione è sbagliata (tassi +50bp).</h4>
+    <button class="btn btn-sm" onclick="toggleSol('s_ira')">Mostra soluzione</button>
+    <div class="sol" id="s_ira">
+      <div class="sol-lbl">Soluzione</div>
+      <div class="step">Duration gap = 9.0 − 7.62 = <span class="ans">+1.38 anni</span> (portafoglio più lungo del benchmark).</div>
+      <div class="step">Extra rendimento atteso (Δy = -0.50%): \(\Delta R = -(+1.38) \times (-0.005) = \)<span class="ans">+0.69%</span> in più del benchmark.</div>
+      <div class="step">Se la previsione è sbagliata (Δy = +0.50%): \(\Delta R = -(+1.38) \times (+0.005) = \)<span class="ans">-0.69%</span> in meno del benchmark.</div>
+      <div class="step">La scommessa è simmetrica: il gain potenziale è uguale alla loss potenziale in valore assoluto.</div>
+    </div>
+  </div>
+
+  <div class="cbox">
+    <h4>Le due assunzioni chiave della gestione attiva</h4>
+    <p class="sm"><strong>1. Previsioni corrette:</strong> il gestore deve avere capacità di previsione superiori al consenso di mercato.</p>
+    <p class="sm"><strong>2. Previsioni non "scontate" dal mercato:</strong> le informazioni su cui si basano le previsioni non sono ancora incorporate nei prezzi. Se il mercato le ha già incorporate, non c'è extra rendimento da catturare.</p>
+    <p class="sm">Solo il soddisfacimento di entrambe le condizioni genera rendimenti in eccesso rispetto al rischio assunto.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>Lezione 08 — La gestione attiva dei portafogli obbligazionari</span>
+  <span>Fixed Income Analysis · Guida obbligazioni</span>
+</footer>
+</div>
+
+<script>
+function $(id){ return document.getElementById(id); }
+function n(id){ return parseFloat($(id).value); }
+function fmt(x,d=3){ return Number(x).toFixed(d); }
+function toggleSol(id){ $(id).classList.toggle('on'); }
+
+const chartOpts = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { labels: { color: '#8a8a89', font: { family: 'Oxygen Mono', size: 11 } } } },
+  scales: {
+    x: { ticks: { color: '#8a8a89', font: { family: 'Oxygen Mono' } }, grid: { color: '#333332' } },
+    y: { ticks: { color: '#8a8a89', font: { family: 'Oxygen Mono' } }, grid: { color: '#333332' } }
+  }
+};
+
+/* ── Bond YTM (Newton) ── */
+function bondYTM(couponPct, matYears, pricePct, freq=2) {
+  const c = couponPct / freq / 100;
+  const n = Math.round(matYears * freq);
+  const px = pricePct / 100;
+  let y = c / px;
+  for (let i = 0; i < 100; i++) {
+    const disc = Math.pow(1+y, n);
+    const P = c * (1 - 1/disc) / y + 1/disc;
+    const dP = -c * (1 - 1/disc) / (y*y) + c * n / (y * disc * (1+y)) - n / (disc * (1+y));
+    const dy = (px - P) / dP;
+    y += dy;
+    if (Math.abs(dy) < 1e-10) break;
+  }
+  return y * freq * 100;
+}
+
+function bondMD(couponPct, matYears, pricePct, freq=2) {
+  const c = couponPct / freq / 100;
+  const n = Math.round(matYears * freq);
+  const px = pricePct / 100;
+  const y = bondYTM(couponPct, matYears, pricePct, freq) / freq / 100;
+  let dur = 0, pv = 0;
+  for (let t = 1; t <= n; t++) {
+    const cf = (t === n) ? (c + 1) : c;
+    const v = cf / Math.pow(1+y, t);
+    dur += t * v;
+    pv += v;
+  }
+  return (dur / pv) / freq;  // Macaulay in anni
+}
+
+/* ── Performance calculator ── */
+function calcPerf() {
+  const rp = n('pm_rp'), rb = n('pm_rb'), rf = n('pm_rf');
+  const vol = n('pm_vol'), te = n('pm_te'), beta = n('pm_beta');
+  const sharpe = (rp - rf) / vol;
+  const alpha = rp - (rf + beta * (rb - rf));
+  const ir = (rp - rb) / te;
+  const clr = v => v > 0 ? 'ok' : v < 0 ? 'warn' : '';
+  $('pm_res').innerHTML = `<div class="res">
+    <div class="rrow"><span class="rl">Rendimento attivo R_P − R_B</span><span class="rv ${clr(rp-rb)}">${fmt(rp-rb,3)}%</span></div>
+    <div class="rrow"><span class="rl">Sharpe Ratio (R_P − R_f) / σ_P</span><span class="rv ${clr(sharpe)}">${fmt(sharpe,3)}</span></div>
+    <div class="rrow"><span class="rl">Jensen Alpha α</span><span class="rv big ${clr(alpha)}">${fmt(alpha,3)}%</span></div>
+    <div class="rrow"><span class="rl">Information Ratio (R_P − R_B) / TE</span><span class="rv ${clr(ir)}">${fmt(ir,3)}</span></div>
+    <div class="rrow"><span class="rl">Interpretazione Alpha</span><span class="rv ${clr(alpha)}">${alpha>0?'Valore aggiunto rispetto al rischio sistematico':'Valore distrutto rispetto al rischio sistematico'}</span></div>
+  </div>`;
+}
+
+/* ── Performance chart ── */
+let perfChart;
+function initPerfChart() {
+  const labels = ['YTD 2018', '2017', '2016', '3Y p.a.', '5Y p.a.', "Dall'inizio"];
+  const fondo  = [  -1.6,  -0.4,   0.9,   -0.7,   0.9,   44.3];
+  const indice = [  -1.1,   0.1,   1.3,   -0.2,   1.6,   65.3];
+  perfChart = new Chart($('perfChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Fondo Raiffeisen', data: fondo, backgroundColor: '#d67556', borderColor: '#d67556' },
+        { label: 'Indice SBI AAA-BBB', data: indice, backgroundColor: '#56b4d6', borderColor: '#56b4d6' }
+      ]
+    },
+    options: {
+      ...chartOpts,
+      scales: {
+        x: chartOpts.scales.x,
+        y: { ...chartOpts.scales.y, ticks: { ...chartOpts.scales.y.ticks, callback: v => v+'%' } }
+      }
+    }
+  });
+}
+
+/* ── Yield Spread calculator ── */
+let spreadChart;
+function initSpreadChart() {
+  spreadChart = new Chart($('spreadChart'), {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: 'Guadagno da convergenza (%)', data: [], borderColor: '#6fcf97', backgroundColor: 'rgba(111,207,151,0.08)', tension: 0.2 },
+      { label: 'Zero line', data: [], borderColor: '#3a3a39', borderDash: [4,3], pointRadius: 0 }
+    ]},
+    options: { ...chartOpts, scales: { x: chartOpts.scales.x, y: { ...chartOpts.scales.y, ticks: { callback: v => v.toFixed(2)+'%' } } } }
+  });
+  calcSpread();
+}
+
+function calcSpread() {
+  const ya = n('sp_ya'), yb = n('sp_yb'), da = n('sp_da'), db = n('sp_db'), conv = n('sp_conv');
+  const spread = ya - yb;
+  const gainA = -da * (-conv/100);  // % gain from convergence on A
+  const gainB = -db * (conv/100);   // % loss on B (selling short, so positive if short)
+  const total = gainA - gainB;
+
+  $('sp_res').innerHTML = `<div class="res">
+    <div class="rrow"><span class="rl">Spread corrente (A − B)</span><span class="rv">${fmt(spread,2)}% = ${fmt(spread*100,0)}bp</span></div>
+    <div class="rrow"><span class="rl">Convergenza attesa</span><span class="rv">${fmt(conv,0)}bp</span></div>
+    <div class="rrow"><span class="rl">Guadagno da settore A (long)</span><span class="rv ok">${fmt(gainA,3)}%</span></div>
+    <div class="rrow"><span class="rl">Guadagno da settore B (short)</span><span class="rv ok">${fmt(-gainB,3)}%</span></div>
+    <div class="rrow"><span class="rl">Extra rendimento totale atteso</span><span class="rv big ok">${fmt(gainA + (-gainB),3)}%</span></div>
+  </div>`;
+
+  const labels = [], vals = [];
+  for (let dp = -200; dp <= 200; dp += 25) {
+    const g = -da * (-dp/100) - (-db * (dp/100));
+    labels.push(dp+'bp'); vals.push(g);
+  }
+  spreadChart.data.labels = labels;
+  spreadChart.data.datasets[0].data = vals;
+  spreadChart.data.datasets[1].data = labels.map(() => 0);
+  spreadChart.update();
+}
+
+/* ── Bond Swap ── */
+function calcSwap() {
+  const c1 = n('sw1_c'), n1 = n('sw1_n'), px1 = n('sw1_px');
+  const c2 = n('sw2_c'), n2 = n('sw2_n'), px2 = n('sw2_px');
+  const bm  = n('sw_bm');
+
+  const ytm1 = bondYTM(c1, n1, px1);
+  const ytm2 = bondYTM(c2, n2, px2);
+  const md1  = bondMD(c1, n1, px1);
+  const md2  = bondMD(c2, n2, px2);
+  const sp1  = ytm1 - bm;
+  const sp2  = ytm2 - bm;
+  const cheap = sp1 > sp2 ? 1 : 2;
+
+  $('sw_res').innerHTML = `<div class="res">
+    <div class="rrow"><span class="rl">YTM Bond 1</span><span class="rv acc">${fmt(ytm1,3)}%</span></div>
+    <div class="rrow"><span class="rl">YTM Bond 2</span><span class="rv blu">${fmt(ytm2,3)}%</span></div>
+    <div class="rrow"><span class="rl">Modified Duration Bond 1 / Bond 2</span><span class="rv">${fmt(md1,3)}Y / ${fmt(md2,3)}Y</span></div>
+    <div class="rrow"><span class="rl">Spread vs benchmark — Bond 1</span><span class="rv ${sp1>sp2?'ok':''}">${fmt(sp1,3)}% = ${fmt(sp1*100,1)}bp</span></div>
+    <div class="rrow"><span class="rl">Spread vs benchmark — Bond 2</span><span class="rv ${sp2>sp1?'ok':''}">${fmt(sp2,3)}% = ${fmt(sp2*100,1)}bp</span></div>
+    <div class="rrow"><span class="rl">Bond relativamente più economico</span><span class="rv big ok">Bond ${cheap} (spread maggiore = YTM eccessivo rispetto al rischio)</span></div>
+    <div class="rrow"><span class="rl">Guadagno atteso se gli spread convergono di 20bp</span><span class="rv ok">${fmt(-(cheap===1?md1:md2)*(-0.20),3)}%</span></div>
+  </div>`;
+}
+
+/* ── IRA Calculator ── */
+let iraChart;
+function initIRAChart() {
+  iraChart = new Chart($('iraChart'), {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: 'D_gap = +3Y (portafoglio lungo)', data: [], borderColor: '#6fcf97', backgroundColor: 'transparent', tension: 0.1, pointRadius: 0 },
+      { label: 'D_gap = +1.38Y (caso base)', data: [], borderColor: '#d67556', backgroundColor: 'transparent', tension: 0.1, pointRadius: 0 },
+      { label: 'D_gap = 0 (neutrale)', data: [], borderColor: '#8a8a89', borderDash: [4,3], tension: 0, pointRadius: 0 },
+      { label: 'D_gap = -3Y (portafoglio corto)', data: [], borderColor: '#56b4d6', backgroundColor: 'transparent', tension: 0.1, pointRadius: 0 }
+    ]},
+    options: {
+      ...chartOpts,
+      scales: {
+        x: { ...chartOpts.scales.x, ticks: { ...chartOpts.scales.x.ticks, maxTicksLimit: 13 } },
+        y: { ...chartOpts.scales.y, ticks: { ...chartOpts.scales.y.ticks, callback: v => v.toFixed(2)+'%' } }
+      }
+    }
+  });
+  refreshIRAChart(1.38);
+}
+
+function refreshIRAChart(gap) {
+  const labels = [], d3 = [], d138 = [], d0 = [], dm3 = [];
+  for (let dy = -3; dy <= 3.01; dy += 0.25) {
+    labels.push((dy >= 0 ? '+' : '') + dy.toFixed(2) + '%');
+    d3.push(-3 * dy);
+    d138.push(-1.38 * dy);
+    d0.push(0);
+    dm3.push(3 * dy);
+  }
+  iraChart.data.labels = labels;
+  iraChart.data.datasets[0].data = d3;
+  iraChart.data.datasets[1].data = d138;
+  iraChart.data.datasets[2].data = d0;
+  iraChart.data.datasets[3].data = dm3;
+  iraChart.update();
+}
+
+function updateIRAChart() {
+  const gap = parseFloat($('ira_gap_sl').value);
+  $('ira_gap_v').textContent = (gap >= 0 ? '+' : '') + gap.toFixed(2) + 'Y';
+  const labels = [], vals = [];
+  for (let dy = -3; dy <= 3.01; dy += 0.25) {
+    labels.push((dy >= 0 ? '+' : '') + dy.toFixed(2) + '%');
+    vals.push(-gap * dy);
+  }
+  iraChart.data.labels = labels;
+  iraChart.data.datasets[1].data = vals;
+  iraChart.data.datasets[1].label = `D_gap = ${gap >= 0 ? '+' : ''}${gap.toFixed(2)}Y (caso corrente)`;
+  iraChart.update();
+}
+
+function calcIRA() {
+  const db = n('ira_db'), dp = n('ira_dp'), dy = n('ira_dy');
+  const gap = dp - db;
+  const extra = -gap * dy;
+  const clr = extra > 0 ? 'ok' : extra < 0 ? 'warn' : '';
+  const descOk = extra > 0 ? 'Scommessa corretta: extra rendimento positivo' : 'Scommessa incorretta: extra rendimento negativo';
+
+  $('ira_res').innerHTML = `<div class="res">
+    <div class="rrow"><span class="rl">Duration gap D_P − D_B</span><span class="rv">${fmt(gap,3)} anni</span></div>
+    <div class="rrow"><span class="rl">Variazione tasso attesa</span><span class="rv">${dy > 0 ? '+' : ''}${fmt(dy,2)}%</span></div>
+    <div class="rrow"><span class="rl">Extra rendimento atteso ≈ −gap × Δy</span><span class="rv big ${clr}">${extra > 0 ? '+' : ''}${fmt(extra,3)}%</span></div>
+    <div class="rrow"><span class="rl">Se Δy realizzato = +1%: extra rendimento</span><span class="rv warn">${fmt(-gap*0.01,3)}%</span></div>
+    <div class="rrow"><span class="rl">Se Δy realizzato = −1%: extra rendimento</span><span class="rv ok">${fmt(-gap*(-0.01),3)}%</span></div>
+    <div class="rrow"><span class="rl">Valutazione</span><span class="rv ${clr}">${descOk}</span></div>
+  </div>`;
+
+  $('ira_gap_sl').value = gap;
+  $('ira_gap_v').textContent = (gap >= 0 ? '+' : '') + gap.toFixed(2) + 'Y';
+  updateIRAChart();
+}
+
+/* ── Nav ── */
+function initNav() {
+  const links = [...document.querySelectorAll('.nav a')];
+  const map = {};
+  links.forEach(a => map[a.getAttribute('href').slice(1)] = a);
+  const obs = new IntersectionObserver(es => {
+    es.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(a => a.classList.remove('on'));
+        const a = map[e.target.id]; if (a) a.classList.add('on');
+      }
+    });
+  }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
+  document.querySelectorAll('.sec').forEach(s => obs.observe(s));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initPerfChart();
+  calcPerf();
+  initSpreadChart();
+  calcSwap();
+  initIRAChart();
+  calcIRA();
+  initNav();
+});
+</script>
+</body>
+</html>
